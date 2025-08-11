@@ -1,8 +1,0 @@
-{
-  "framework": "nuxt",
-  "functions": {
-    "server/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    }
-  }
-}
