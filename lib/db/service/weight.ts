@@ -1,5 +1,5 @@
-import { WeightRecord } from "@prisma/client";
-import prisma from "../client";
+import type { WeightRecord } from "@prisma/client";
+import prisma from "../../../server/utils/prisma";
 import type { DbWeightRecord } from "../types";
 
 function prismaToDb(record: WeightRecord): DbWeightRecord {

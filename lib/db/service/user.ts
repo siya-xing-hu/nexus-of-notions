@@ -1,5 +1,5 @@
-import { User } from "@prisma/client";
-import prisma from "../client";
+import type { User } from "@prisma/client";
+import prisma from "../../../server/utils/prisma";
 import type { DbUser } from "../types";
 
 function prismaToDb(record: User): DbUser {
