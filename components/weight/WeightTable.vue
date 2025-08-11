@@ -4,35 +4,70 @@
 
     <!-- 当月体重变化概览 -->
     <div v-if="!loading && filteredRecords.length > 0" class="mb-6">
-      <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+      <div
+        class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200"
+      >
         <div class="text-center">
-          <div class="text-sm text-gray-600 mb-2">{{ currentMonthDisplay }} 体重变化概览</div>
+          <div class="text-sm text-gray-600 mb-2">
+            {{ currentMonthDisplay }} 体重变化概览
+          </div>
           <div class="flex items-center justify-center space-x-8">
             <div class="text-center">
               <div class="text-xs text-gray-500">月初体重</div>
-              <div class="text-lg font-bold text-blue-800">{{ monthFirstWeight }} kg</div>
-              <div class="text-xs text-gray-500">{{ formatDate(monthFirstDate) }}</div>
+              <div class="text-lg font-bold text-blue-800">
+                {{ monthFirstWeight }} kg
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ formatDate(monthFirstDate) }}
+              </div>
             </div>
-            
+
             <div class="flex items-center space-x-2">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M17 8l4 4m0 0l-4 4m4-4H3"
+                />
               </svg>
               <div class="text-center">
-                <div class="text-sm font-medium" :class="getChangeColorClass(monthWeightChange)">
+                <div
+                  class="text-sm font-medium"
+                  :class="getChangeColorClass(monthWeightChange)"
+                >
                   {{ formatWeightChange(monthWeightChange) }} kg
                 </div>
                 <div class="text-xs text-gray-500">变化</div>
               </div>
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                />
               </svg>
             </div>
-            
+
             <div class="text-center">
               <div class="text-xs text-gray-500">月末体重</div>
-              <div class="text-lg font-bold text-purple-800">{{ monthLastWeight }} kg</div>
-              <div class="text-xs text-gray-500">{{ formatDate(monthLastDate) }}</div>
+              <div class="text-lg font-bold text-purple-800">
+                {{ monthLastWeight }} kg
+              </div>
+              <div class="text-xs text-gray-500">
+                {{ formatDate(monthLastDate) }}
+              </div>
             </div>
           </div>
         </div>
@@ -47,26 +82,46 @@
           class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200"
           :disabled="loading"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
         </button>
-        
+
         <div class="text-lg font-semibold text-gray-800">
           {{ currentMonthDisplay }}
         </div>
-        
+
         <button
           @click="nextMonth"
           class="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors duration-200"
           :disabled="loading"
         >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M9 5l7 7-7 7"
+            />
           </svg>
         </button>
       </div>
-      
+
       <button
         @click="goToCurrentMonth"
         class="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
@@ -139,12 +194,16 @@
               <span
                 v-if="index < filteredRecords.length - 1"
                 :class="
-                  getChangeColor(record.weight - filteredRecords[index + 1].weight)
+                  getChangeColor(
+                    record.weight - filteredRecords[index + 1].weight
+                  )
                 "
                 class="font-medium"
               >
                 {{
-                  formatWeightChange(record.weight - filteredRecords[index + 1].weight)
+                  formatWeightChange(
+                    record.weight - filteredRecords[index + 1].weight
+                  )
                 }}
               </span>
               <span v-else class="text-gray-400">-</span>
@@ -158,12 +217,6 @@
     </div>
 
     <div class="mt-6 flex justify-between items-center">
-      <button
-        @click="refreshData"
-        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-      >
-        刷新数据
-      </button>
       <div class="text-sm text-gray-600">
         {{ currentMonthDisplay }} 共 {{ filteredRecords.length }} 条记录
       </div>
@@ -178,7 +231,7 @@ import { ref, onMounted, computed } from "vue";
 
 // Props
 const props = defineProps<{
-  userId: number;
+  userId: string;
 }>();
 
 const records = ref<DbWeightRecord[]>([]);
@@ -199,11 +252,15 @@ const currentMonthDisplay = computed(() => {
 const filteredRecords = computed(() => {
   const year = currentMonth.value.getFullYear();
   const month = currentMonth.value.getMonth();
-  
-  return records.value.filter(record => {
-    const recordDate = new Date(record.date);
-    return recordDate.getFullYear() === year && recordDate.getMonth() === month;
-  }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  return records.value
+    .filter((record) => {
+      const recordDate = new Date(record.date);
+      return (
+        recordDate.getFullYear() === year && recordDate.getMonth() === month
+      );
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 });
 
 // 当月体重变化相关
@@ -218,12 +275,12 @@ const monthLastWeight = computed(() => {
 });
 
 const monthFirstDate = computed(() => {
-  if (filteredRecords.value.length === 0) return '';
+  if (filteredRecords.value.length === 0) return "";
   return filteredRecords.value[filteredRecords.value.length - 1].date;
 });
 
 const monthLastDate = computed(() => {
-  if (filteredRecords.value.length === 0) return '';
+  if (filteredRecords.value.length === 0) return "";
   return filteredRecords.value[0].date;
 });
 
@@ -240,10 +297,6 @@ const fetchRecords = async () => {
 
   records.value = data;
   loading.value = false;
-};
-
-const refreshData = () => {
-  fetchRecords();
 };
 
 // 月份切换功能

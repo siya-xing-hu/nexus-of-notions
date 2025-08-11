@@ -34,13 +34,7 @@ async function handleRegister(event: any): Promise<Resp<DbUser>> {
   }
 
   // 创建新用户
-  const user = await createOrGetUser({
-    id: 0, // 临时ID，会被忽略
-    name,
-    email,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  });
+  const user = await createOrGetUser(name, email);
 
   const data: RespObj<DbUser> = {
     data: user,

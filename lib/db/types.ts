@@ -1,5 +1,5 @@
 export interface DbUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
   created_at: string;
@@ -8,7 +8,7 @@ export interface DbUser {
 
 export interface DbWeightRecord {
   id: number;
-  user_id: number;
+  user_id: string;
   weight: number;
   date: string;
   created_at: string;

@@ -79,7 +79,7 @@ import { DbWeightRecord } from "@/lib/db/types";
 
 // Props
 const props = defineProps<{
-  userId: number;
+  userId: string;
 }>();
 
 const loading = ref(false);

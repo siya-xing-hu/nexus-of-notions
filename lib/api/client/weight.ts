@@ -3,11 +3,11 @@ import { HttpMethod } from "../index";
 import { request } from "../request";
 
 export const weightApi = {
-  query: (userId: number) =>
+  query: (userId: string) =>
     request("/api/weight", HttpMethod.GET, { query: { userId } }) as Promise<
       DbWeightRecord[]
     >,
-  create: (weight: number, date: string, userId: number) =>
+  create: (weight: number, date: string, userId: string) =>
     request("/api/weight", HttpMethod.POST, {
       body: { data: { weight, date, userId } },
     }),

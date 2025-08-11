@@ -8,16 +8,21 @@ export class WeightHandler {
   static async handleAddWeight(
     weight: number,
     date: string,
-    userId: number,
+    userId: string,
   ): Promise<void> {
+    // 验证用户ID
+    if (!userId) {
+      throw BusinessError.required("用户ID是必需的");
+    }
+
     // 验证体重参数
     if (!weight || typeof weight !== "number") {
       throw BusinessError.required("体重参数是必需的且必须是数字");
     }
 
-    // 验证用户ID
-    if (!userId) {
-      throw BusinessError.required("用户ID是必需的");
+    // 体重必须在 30-200 kg 之间
+    if (weight < 30 || weight > 200) {
+      throw BusinessError.required("体重必须在 30-200 kg 之间");
     }
 
     const recordDate = date || new Date().toISOString().split("T")[0];

@@ -12,7 +12,7 @@ function prismaToDb(record: User): DbUser {
   };
 }
 
-export async function queryUserById(id: number): Promise<DbUser | null> {
+export async function queryUserById(id: string): Promise<DbUser | null> {
   const record = await prisma.user.findUnique({
     where: { id },
   });
@@ -28,11 +28,11 @@ export async function queryUserByEmail(email: string): Promise<DbUser | null> {
   return record ? prismaToDb(record) : null;
 }
 
-export async function createOrGetUser(user: DbUser): Promise<DbUser> {
+export async function createOrGetUser(name: string, email: string): Promise<DbUser> {
   const record = await prisma.user.upsert({
-    where: { email: user.email },
-    update: { name: user.name },
-    create: { name: user.name, email: user.email },
+    where: { email },
+    update: { name },
+    create: { name, email },
   });
 
   return prismaToDb(record);

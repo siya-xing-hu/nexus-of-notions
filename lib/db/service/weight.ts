@@ -34,7 +34,7 @@ export async function addWeightRecord(
 }
 
 export async function queryAllWeightRecords(
-  userId: number,
+  userId: string,
   startDate?: Date,
   endDate?: Date,
 ): Promise<DbWeightRecord[]> {

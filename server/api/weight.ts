@@ -46,7 +46,7 @@ async function handleGet(event: any): Promise<Resp<DbWeightRecord[]>> {
   }
 
   // 获取用户体重记录
-  const records = await queryAllWeightRecords(parseInt(userId));
+  const records = await queryAllWeightRecords(userId);
 
   const data: RespObj<DbWeightRecord[]> = {
     data: records,

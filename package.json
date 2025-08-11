@@ -7,7 +7,6 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate"
@@ -16,6 +15,7 @@
     "@nuxt/devtools": "latest",
     "@nuxtjs/tailwindcss": "^6.8.0",
     "@types/node": "^20.0.0",
+    "@types/uuid": "^10.0.0",
     "nuxt": "^3.8.0",
     "typescript": "^5.0.0"
   },
@@ -26,6 +26,7 @@
     "lucide-vue-next": "^0.537.0",
     "prisma": "^6.13.0",
     "sharp": "^0.34.3",
+    "uuid": "^11.1.0",
     "vue-chartjs": "^5.2.0"
   }
 }
