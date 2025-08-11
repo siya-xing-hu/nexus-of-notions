@@ -131,6 +131,51 @@
       </button>
     </div>
 
+        <!-- 当月记录视图 -->
+    <div class="mb-6 bg-white rounded-lg border border-gray-200 p-4">
+      <h3 class="text-sm font-medium text-gray-700 mb-3">当月记录概览</h3>
+      
+      <!-- 电脑端：一排显示 -->
+      <div class="hidden md:block">
+        <div class="flex flex-wrap gap-2">
+          <div
+            v-for="day in monthCalendarDays.filter(day => day.dayNumber)"
+            :key="day.date"
+            class="w-8 h-8 flex items-center justify-center text-xs cursor-pointer transition-all duration-200 hover:scale-110 border border-gray-100 rounded"
+            :class="getDayColorClass(day)"
+            :title="getDayTooltip(day)"
+          >
+            <span :class="day.hasRecord ? 'text-white' : 'text-gray-700'">{{ day.dayNumber }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 手机端：日历格式显示 -->
+      <div class="md:hidden">
+        <div class="grid grid-cols-7 gap-1">
+          <!-- 星期标题 -->
+          <div class="text-center text-xs text-gray-500 font-medium py-1">日</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">一</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">二</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">三</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">四</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">五</div>
+          <div class="text-center text-xs text-gray-500 font-medium py-1">六</div>
+          
+          <!-- 日历日期 -->
+          <div
+            v-for="day in monthCalendarDays"
+            :key="day.date"
+            class="aspect-square flex items-center justify-center text-xs cursor-pointer transition-all duration-200 hover:scale-110 border border-gray-100"
+            :class="getDayColorClass(day)"
+            :title="getDayTooltip(day)"
+          >
+            <span v-if="day.dayNumber" :class="day.hasRecord ? 'text-white' : 'text-gray-700'">{{ day.dayNumber }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="loading" class="flex justify-center items-center py-8">
       <div
         class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"
@@ -351,6 +396,125 @@ const getChangeColorClass = (change: number) => {
     return "text-green-600";
   }
   return "text-gray-600";
+};
+
+// 日历相关类型定义
+interface CalendarDay {
+  date: string;
+  dayNumber: number | null;
+  weight: number | null;
+  status: 'down' | 'up' | 'same' | 'no-record';
+  hasRecord: boolean;
+}
+
+// 生成当月日历数据
+const monthCalendarDays = computed(() => {
+  const year = currentMonth.value.getFullYear();
+  const month = currentMonth.value.getMonth();
+  
+  // 获取当月第一天和最后一天
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  
+  // 获取当月第一天是星期几（0是星期日）
+  const firstDayWeek = firstDay.getDay();
+  
+  const days: CalendarDay[] = [];
+  
+  // 添加月初的空白天数
+  for (let i = 0; i < firstDayWeek; i++) {
+    days.push({
+      date: '',
+      dayNumber: null,
+      weight: null,
+      status: 'no-record',
+      hasRecord: false
+    });
+  }
+
+  // 倒叙
+  const reverseRecords = [...filteredRecords.value].reverse();
+
+  // 添加当月的所有日期
+  for (let day = 1; day <= lastDay.getDate(); day++) {
+    // 月份需要补0
+    const monthStr = (month + 1).toString().padStart(2, '0');
+    // 日期需要补0
+    const dayStr = day.toString().padStart(2, '0');
+    const dateStr = `${year}-${monthStr}-${dayStr}`;
+    
+    // 查找当天的记录
+    const record = records.value.find(r => r.date === dateStr);
+    
+    // 查找前一天有记录的体重
+    let prevWeight: number | null = null;
+    const currentRecordIndex = reverseRecords.findIndex(r => r.date === dateStr);
+
+    if (currentRecordIndex > 0) {
+      prevWeight = reverseRecords[currentRecordIndex - 1].weight;
+    } else if (currentRecordIndex === 0) {
+      prevWeight = reverseRecords[currentRecordIndex].weight;
+    }
+    
+    let status: 'down' | 'up' | 'same' | 'no-record' = 'no-record';
+    if (record && prevWeight !== null) {
+      if (record.weight < prevWeight) {
+        status = 'down';
+      } else if (record.weight > prevWeight) {
+        status = 'up';
+      } else {
+        status = 'same';
+      }
+    } else if (record) {
+      // 第一条记录，标记为无变化
+      status = 'same';
+    }
+    
+    days.push({
+      date: dateStr,
+      dayNumber: day,
+      weight: record?.weight || null,
+      status,
+      hasRecord: !!record
+    });
+  }
+  
+  return days;
+});
+
+// 获取日期颜色类
+const getDayColorClass = (day: CalendarDay) => {
+  if (!day.hasRecord) {
+    return 'bg-gray-100 hover:bg-gray-200';
+  }
+  
+  switch (day.status) {
+    case 'down':
+      return 'bg-green-500 hover:bg-green-600';
+    case 'up':
+      return 'bg-red-500 hover:bg-red-600';
+    case 'same':
+      return 'bg-blue-500 hover:bg-blue-600';
+    default:
+      return 'bg-gray-100 hover:bg-gray-200';
+  }
+};
+
+// 获取日期提示信息
+const getDayTooltip = (day: CalendarDay) => {
+  if (day.hasRecord) {
+    const changeText = day.status === 'down' ? '下降' : 
+                      day.status === 'up' ? '上涨' : '无变化';
+    const date = new Date(day.date);
+    const formattedDate = `${date.getMonth() + 1}月${date.getDate()}日`;
+    return `${formattedDate}: ${day.weight}kg (${changeText})`;
+  }
+  if (day.dayNumber) {
+    const date = new Date(day.date);
+    const formattedDate = `${date.getMonth() + 1}月${date.getDate()}日`;
+    return `${formattedDate}: 未记录`;
+  }
+  return '';
 };
 
 onMounted(() => {
