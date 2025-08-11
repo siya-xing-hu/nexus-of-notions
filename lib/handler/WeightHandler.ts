@@ -1,0 +1,34 @@
+import { addWeightRecord } from "@/lib/db";
+import { BusinessError } from "../exception/BusinessError";
+
+export class WeightHandler {
+  /**
+   * 处理添加体重记录的请求
+   */
+  static async handleAddWeight(
+    weight: number,
+    date: string,
+    userId: number,
+  ): Promise<void> {
+    // 验证体重参数
+    if (!weight || typeof weight !== "number") {
+      throw BusinessError.required("体重参数是必需的且必须是数字");
+    }
+
+    // 验证用户ID
+    if (!userId) {
+      throw BusinessError.required("用户ID是必需的");
+    }
+
+    const recordDate = date || new Date().toISOString().split("T")[0];
+
+    // 添加体重记录
+    await addWeightRecord({
+      id: 0,
+      user_id: userId,
+      weight: weight,
+      date: recordDate,
+      created_at: new Date().toISOString(),
+    });
+  }
+}

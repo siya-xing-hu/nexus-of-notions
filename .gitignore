@@ -4,8 +4,12 @@ node_modules
 
 
 # local env files
+.env
 .env.local
 .env.*.local
+
+# Prisma
+prisma/migrations/
 
 # Log files
 npm-debug.log*
@@ -23,3 +27,5 @@ pnpm-debug.log*
 *.sw?
 
 .vercel
+
+/generated/prisma
