@@ -19,8 +19,17 @@
           </p>
         </div>
       </div>
-      <div class="text-right text-gray-500 text-sm">
-        {{ currentDate }}
+      <div class="flex flex-col items-end gap-2">
+        <NuxtLink
+          to="/weight-tracker/compare"
+          class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+        >
+          <Users class="w-4 h-4" />
+          用户对比
+        </NuxtLink>
+        <div class="text-right text-gray-500 text-sm">
+          {{ currentDate }}
+        </div>
       </div>
     </header>
 
@@ -59,7 +68,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft, Users } from "lucide-vue-next";
 
 // Reactive data
 const currentUser = ref(null);

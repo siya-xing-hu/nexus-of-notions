@@ -28,7 +28,15 @@ export async function queryUserByEmail(email: string): Promise<DbUser | null> {
   return record ? prismaToDb(record) : null;
 }
 
-export async function createOrGetUser(name: string, email: string): Promise<DbUser> {
+export async function queryAllUsers(): Promise<DbUser[]> {
+  const records = await prisma.user.findMany();
+  return records.map(prismaToDb);
+}
+
+export async function createOrGetUser(
+  name: string,
+  email: string,
+): Promise<DbUser> {
   const record = await prisma.user.upsert({
     where: { email },
     update: { name },

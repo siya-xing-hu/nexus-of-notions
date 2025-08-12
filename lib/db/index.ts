@@ -1,4 +1,9 @@
-export { createOrGetUser, queryUserByEmail, queryUserById } from "./service/user";
+export {
+  createOrGetUser,
+  queryUserByEmail,
+  queryUserById,
+  queryAllUsers,
+} from "./service/user";
 export {
   addWeightRecord,
   queryAllWeightRecords,

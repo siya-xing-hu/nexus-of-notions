@@ -20,10 +20,11 @@ export default defineEventHandler(async (event) => {
 
 async function handlePost(event: any): Promise<Resp<any>> {
   const body: ReqObj = await readBody(event);
-  const { weight, date, userId } = body.data;
+  const { data } = body;
 
   try {
-    await WeightHandler.handleAddWeight(weight, date, userId);
+    await WeightHandler.handleAddWeight(data.weight, data.date, data.userId);
+
     return response(event, null, null);
   } catch (error) {
     if (error instanceof BusinessError) {
