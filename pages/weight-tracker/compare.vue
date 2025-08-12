@@ -28,14 +28,14 @@
     <main class="container mx-auto px-4 py-8">
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Input Form -->
-        <div class="bg-white rounded-lg shadow-lg p-6">
-          <h2 class="text-xl font-semibold text-gray-800 mb-4">
+        <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
+          <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">
             选择目标用户
           </h2>
-          <div class="flex gap-4">
+          <div class="flex flex-col md:flex-row gap-3 md:gap-4">
             <select
               v-model="targetUserId"
-              class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              class="flex-1 px-3 md:px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm md:text-base"
               :disabled="isLoading || isUsersLoading"
             >
               <option value="">请选择目标用户</option>
@@ -50,15 +50,16 @@
             <button
               @click="compareUsers"
               :disabled="!targetUserId || isLoading"
-              class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-6 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+              class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white px-4 md:px-6 py-2 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
             >
               <Search v-if="!isLoading" class="w-4 h-4" />
               <Loader2 v-else class="w-4 h-4 animate-spin" />
-              {{ isLoading ? "对比中..." : "开始对比" }}
+              <span class="hidden sm:inline">{{ isLoading ? "对比中..." : "开始对比" }}</span>
+              <span class="sm:hidden">{{ isLoading ? "对比中" : "对比" }}</span>
             </button>
           </div>
-          <p v-if="error" class="text-red-500 text-sm mt-2">{{ error }}</p>
-          <p v-if="isUsersLoading" class="text-blue-500 text-sm mt-2">正在加载用户列表...</p>
+          <p v-if="error" class="text-red-500 text-xs md:text-sm mt-2">{{ error }}</p>
+          <p v-if="isUsersLoading" class="text-blue-500 text-xs md:text-sm mt-2">正在加载用户列表...</p>
         </div>
 
         <!-- Comparison Results -->
@@ -128,16 +129,37 @@
 
           <!-- Comparison Chart -->
           <div class="bg-white rounded-lg shadow-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">
-              体重趋势对比
-            </h3>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+              <h3 class="text-lg font-semibold text-gray-800 mb-3 sm:mb-0">
+                体重趋势对比
+              </h3>
+              <div class="flex items-center gap-3">
+                <label class="text-sm font-medium text-gray-700">选择月份：</label>
+                <select
+                  v-model="selectedMonth"
+                  class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
+                >
+                  <option
+                    v-for="month in availableMonths"
+                    :key="month"
+                    :value="month"
+                  >
+                    {{ formatMonth(month) }}
+                  </option>
+                </select>
+              </div>
+            </div>
             <div class="h-80">
               <WeightComparisonChart
-                :current-user-data="comparisonData.currentUser.records"
-                :target-user-data="comparisonData.targetUser.records"
+                v-if="filteredComparisonData"
+                :current-user-data="filteredComparisonData.currentUser.records"
+                :target-user-data="filteredComparisonData.targetUser.records"
                 :current-user-name="currentUser.name"
                 :target-user-name="targetUser.name"
               />
+              <div v-else class="flex items-center justify-center h-full text-gray-500">
+                该月份暂无数据
+              </div>
             </div>
           </div>
 
@@ -202,6 +224,7 @@ const comparisonData = ref(null);
 const isLoading = ref(false);
 const isUsersLoading = ref(false);
 const error = ref("");
+const selectedMonth = ref(new Date().toISOString().slice(0, 7)); // 当前月份 YYYY-MM
 
 // Computed properties
 const currentDate = computed(() => {
@@ -229,6 +252,47 @@ const weightDifference = computed(() => {
     comparisonData.value.currentUser.averageWeight -
     comparisonData.value.targetUser.averageWeight
   ).toFixed(1);
+});
+
+// 获取可用的月份列表
+const availableMonths = computed(() => {
+  if (!comparisonData.value) return [];
+  
+  const months = new Set();
+  
+  // 从当前用户记录中提取月份
+  comparisonData.value.currentUser.records.forEach(record => {
+    const month = record.date.slice(0, 7);
+    months.add(month);
+  });
+  
+  // 从目标用户记录中提取月份
+  comparisonData.value.targetUser.records.forEach(record => {
+    const month = record.date.slice(0, 7);
+    months.add(month);
+  });
+  
+  return Array.from(months).sort().reverse(); // 按时间倒序排列
+});
+
+// 过滤当前月份的数据
+const filteredComparisonData = computed(() => {
+  if (!comparisonData.value) return null;
+  
+  const filterByMonth = (records) => {
+    return records.filter(record => record.date.startsWith(selectedMonth.value));
+  };
+  
+  return {
+    currentUser: {
+      ...comparisonData.value.currentUser,
+      records: filterByMonth(comparisonData.value.currentUser.records)
+    },
+    targetUser: {
+      ...comparisonData.value.targetUser,
+      records: filterByMonth(comparisonData.value.targetUser.records)
+    }
+  };
 });
 
 // Methods
@@ -298,6 +362,11 @@ const compareUsers = async () => {
         }))
       }
     };
+
+    // 设置默认选中的月份为最新的月份
+    if (availableMonths.value.length > 0) {
+      selectedMonth.value = availableMonths.value[0];
+    }
   } catch (err) {
     console.error('对比失败:', err);
     error.value = "对比失败，请重试";
@@ -326,6 +395,16 @@ const calculateUserStats = (records) => {
     maxWeight: Math.max(...weights).toFixed(1),
     minWeight: Math.min(...weights).toFixed(1)
   };
+};
+
+// 格式化月份显示
+const formatMonth = (monthStr) => {
+  const [year, month] = monthStr.split('-');
+  const monthNames = [
+    '一月', '二月', '三月', '四月', '五月', '六月',
+    '七月', '八月', '九月', '十月', '十一月', '十二月'
+  ];
+  return `${year}年${monthNames[parseInt(month) - 1]}`;
 };
 
 // Lifecycle
