@@ -21,6 +21,8 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
   
   weightRecords WeightRecord[]
+  gamesAsPlayer1 Game[] @relation("Player1")
+  gamesAsPlayer2 Game[] @relation("Player2")
   
   @@map("users")
 }
@@ -36,4 +38,28 @@ model WeightRecord {
   
   @@unique([userId, date])
   @@map("weight_records")
+}
+
+model Game {
+  id          String   @id @default(uuid())
+  player1Id   String   @map("player1_id")
+  player2Id   String?  @map("player2_id")
+  status      GameStatus @default(WAITING)
+  board       Json     // 15x15 棋盘状态
+  currentTurn String?  @map("current_turn") // 当前轮到哪个玩家
+  winner      String?  // 获胜者ID
+  lastMove    Json?    @map("last_move") // 最后一步棋的位置
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  player1 User @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 User? @relation("Player2", fields: [player2Id], references: [id], onDelete: SetNull)
+  
+  @@map("games")
+}
+
+enum GameStatus {
+  WAITING    // 等待玩家加入
+  PLAYING    // 游戏进行中
+  FINISHED   // 游戏结束
 }

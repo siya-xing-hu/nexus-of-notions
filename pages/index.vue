@@ -52,7 +52,7 @@
       </div>
 
       <!-- Feature Cards -->
-      <div class="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <!-- Weight Recording System Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
@@ -77,6 +77,30 @@
           </div>
         </div>
 
+        <!-- Gomoku Game Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <div class="p-6 text-center">
+            <div
+              class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+            >
+              <Gamepad2Icon class="w-6 h-6 text-green-600" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">五子棋小游戏</h3>
+            <p class="text-green-600 font-medium mb-4">实时对战</p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+              与朋友一起享受经典的五子棋对战，支持实时更新和自动重连。
+            </p>
+            <button
+              @click="handleGomokuClick"
+              class="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              开始游戏
+            </button>
+          </div>
+        </div>
+
         <!-- New Ideas Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-dashed border-gray-200"
@@ -91,29 +115,6 @@
             <p class="text-gray-400 font-medium mb-4">等待实现</p>
             <p class="text-gray-400 mb-6 leading-relaxed">
               你的下一个奇思妙想将在这里实现...
-            </p>
-            <div
-              class="w-full py-3 px-4 rounded-lg bg-gray-100 text-gray-400 font-medium"
-            >
-              敬请期待
-            </div>
-          </div>
-        </div>
-
-        <!-- More Ideas Card -->
-        <div
-          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-dashed border-gray-200"
-        >
-          <div class="p-6 text-center">
-            <div
-              class="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4"
-            >
-              <PlusIcon class="w-6 h-6 text-gray-400" />
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">更多想法</h3>
-            <p class="text-gray-400 font-medium mb-4">无限可能</p>
-            <p class="text-gray-400 mb-6 leading-relaxed">
-              更多奇思妙想正在酝酿中...
             </p>
             <div
               class="w-full py-3 px-4 rounded-lg bg-gray-100 text-gray-400 font-medium"
@@ -193,6 +194,7 @@ import {
   Heart as HeartIcon,
   Star as StarIcon,
   Share as ShareIcon,
+  Gamepad2 as Gamepad2Icon,
   Calendar,
   BookOpen,
   Target,
@@ -281,6 +283,17 @@ const handleWeightTrackerClick = () => {
   } else {
     // 用户未登录，跳转到登录页面，并指定登录后跳转到体重记录页面
     navigateTo("/login?redirect=/weight-tracker");
+  }
+};
+
+// 处理五子棋游戏点击
+const handleGomokuClick = () => {
+  if (userInfo.value) {
+    // 用户已登录，跳转到五子棋游戏页面
+    navigateTo("/gomoku");
+  } else {
+    // 用户未登录，跳转到登录页面，并指定登录后跳转到五子棋游戏页面
+    navigateTo("/login?redirect=/gomoku");
   }
 };
 

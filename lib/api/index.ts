@@ -2,10 +2,12 @@ import { H3Event } from "h3";
 // 统一 API 聚合入口
 import { userApi } from "./client/user";
 import { weightApi } from "./client/weight";
+import { gameApi } from "./client/game";
 
 export const api = {
   user: userApi,
   weight: weightApi,
+  game: gameApi,
 };
 
 export type ApiClient = typeof api;

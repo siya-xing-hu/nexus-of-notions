@@ -18,6 +18,17 @@ Nexus of Notions (NoN) 是一个用于收集、管理和展示各种奇思妙想
   - 响应式设计 - 适配各种设备屏幕
   - 现代 UI - 使用 Tailwind CSS 构建美观界面
 
+### 🎮 五子棋小游戏 (Gomoku Game)
+- **功能描述**: 经典五子棋对战游戏，支持实时多人对战
+- **核心特性**: 
+  - 实时对战 - 使用 Server-Sent Events 实现实时通信
+  - 自动重连 - 连接中断时自动重新建立连接
+  - 游戏房间 - 创建和加入游戏房间
+  - 五子棋规则 - 完整的五子棋游戏逻辑
+  - 响应式棋盘 - 适配各种设备屏幕
+  - 游戏状态管理 - 等待、进行中、结束状态
+  - 获胜检测 - 自动检测五子连珠获胜条件
+
 ### 🚀 更多模块开发中...
 - 待添加的奇思妙想功能模块
 
@@ -35,18 +46,26 @@ Nexus of Notions (NoN) 是一个用于收集、管理和展示各种奇思妙想
 components/              # Vue 组件
 ├── AddWeightForm.vue    # 体重记录表单
 ├── WeightChart.vue      # 体重图表
-└── WeightTable.vue      # 体重表格
-lib/                     # 工具库
-└── db.ts               # 数据库操作
+├── WeightTable.vue      # 体重表格
+└── gomoku/             # 五子棋游戏组件
+    ├── GameStatusBadge.vue  # 游戏状态徽章
 pages/                   # 页面
 ├── index.vue           # 主页面
-└── weight-tracker.vue  # 体重记录页面
+├── weight-tracker/     # 体重记录页面
+└── gomoku/             # 五子棋游戏页面
+    ├── index.vue       # 游戏列表页面
+    └── game/[id].vue   # 游戏对战页面
 server/                  # API 路由
 └── api/                # API 路由
-    └── weight/         # 体重相关 API
-        └── route.ts
+    ├── weight/         # 体重相关 API
+    └── game/           # 五子棋游戏 API
+        ├── index.ts    # 游戏管理 API
+        ├── [id]/       # 游戏详情 API
+        │   ├── index.ts
+        │   ├── move.ts # 移动 API
+        │   └── stream.ts # SSE 实时更新
 prisma/                  # 数据库模型
-└── schema.prisma       # Prisma schema
+└── schema.prisma       # Prisma schema (包含 Game 模型)
 ```
 
 ## 快速开始
