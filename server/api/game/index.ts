@@ -1,10 +1,10 @@
 import { defineEventHandler, getQuery, readBody } from "h3";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
-import { BusinessError } from "@/lib/exception/BusinessError";
-import { SystemError } from "@/lib/exception/SystemError";
-import { GameHandler } from "@/lib/handler/GameHandler";
-import { queryUserGames, queryAvailableGames } from "@/lib/db/service/game";
-import { DbGame } from "@/lib/db/service/game";
+import { BusinessError, SystemError } from "@/lib/exception";
+import { GameHandler } from "@/lib/handler";
+import { queryAvailableGames, queryUserGames } from "@/lib/db";
+import { DbGame } from "@/lib/db/types";
+import { GameStatus } from "@prisma/client";
 
 export default defineEventHandler(async (event) => {
   switch (event.method) {
@@ -25,7 +25,7 @@ async function handlePost(event: any): Promise<Resp<DbGame>> {
   try {
     const { userId, size = 15 } = data;
     const game = await GameHandler.handleCreateGame(userId, size);
-    
+
     const result: RespObj<DbGame> = {
       data: game,
     };
@@ -53,10 +53,11 @@ async function handleGet(event: any): Promise<Resp<DbGame[]>> {
       games = await queryUserGames(userId, status);
     } else if (status) {
       // 查询可加入的游戏
-      games = await queryAvailableGames(status);
+      games = await queryAvailableGames(status as GameStatus);
+      // 剔除自己创建的游戏
+      games = games.filter((game) => game.player1Id !== userId);
     } else {
-      const error = BusinessError.required("用户ID或状态参数是必需的").toErrorObj();
-      return response(event, null, error, error.errorCode);
+      throw BusinessError.required("用户ID或状态参数是必需的");
     }
 
     const result: RespObj<DbGame[]> = {

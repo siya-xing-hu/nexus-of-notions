@@ -1,4 +1,4 @@
-import { DbGame } from "@/lib/db/service/game";
+import { DbGame } from "@/lib/db/types";
 import { HttpMethod } from "../index";
 import { request } from "../request";
 
@@ -22,10 +22,8 @@ export const gameApi = {
     }) as Promise<DbGame[]>,
 
   // 获取游戏详情
-  queryById: (gameId: string, userId: string) =>
-    request(`/api/game/${gameId}`, HttpMethod.GET, {
-      query: { userId },
-    }) as Promise<DbGame>,
+  queryById: (gameId: string) =>
+    request(`/api/game/${gameId}`, HttpMethod.GET) as Promise<DbGame>,
 
   // 加入游戏
   join: (gameId: string, userId: string) =>

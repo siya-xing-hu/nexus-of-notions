@@ -42,6 +42,7 @@ model WeightRecord {
 
 model Game {
   id          String   @id @default(uuid())
+  name        String   @map("name")
   player1Id   String   @map("player1_id")
   player2Id   String?  @map("player2_id")
   status      GameStatus @default(WAITING)

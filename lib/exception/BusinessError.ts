@@ -30,6 +30,13 @@ export class BusinessError extends Error {
   }
 
   /**
+   * 未找到错误
+   */
+  static notFound(message: string): BusinessError {
+    return new BusinessError(message, 404);
+  }
+
+  /**
    * 方法不允许错误
    */
   static methodNotAllowed(): BusinessError {

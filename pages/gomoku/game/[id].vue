@@ -13,7 +13,7 @@
             </div>
           </div>
           <div class="text-right">
-            <GameStatusBadge :status="game?.status || 'WAITING'" />
+            <GameStatusBadge :status="game?.status" />
             <p class="text-sm text-gray-500 mt-1">
               {{
                 game?.status === "PLAYING" ? `当前回合: ${currentTurnText}` : ""
@@ -23,48 +23,79 @@
         </div>
       </div>
 
+      <!-- 调试信息面板（开发环境显示） -->
+      <div
+        v-if="isDevelopment"
+        class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4"
+      >
+        <h3 class="text-sm font-semibold text-yellow-800 mb-2">
+          棋盘尺寸调试信息
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+          <div>
+            <span class="font-medium">棋盘大小:</span>
+            {{ boardContainerSize }}px
+          </div>
+          <div>
+            <span class="font-medium">边框宽度:</span> {{ boardBorderWidth }}px
+          </div>
+          <div>
+            <span class="font-medium">落子区:</span> {{ playableAreaSize }}px
+          </div>
+          <div>
+            <span class="font-medium">网格间距:</span>
+            {{ gridSpacing.toFixed(1) }}px
+          </div>
+          <div>
+            <span class="font-medium">棋子半径:</span> {{ pieceRadius }}px
+          </div>
+          <div>
+            <span class="font-medium">棋子直径:</span> {{ pieceDiameter }}px
+          </div>
+          <div>
+            <span class="font-medium">棋盘路数:</span> {{ boardSize }}路
+          </div>
+          <div><span class="font-medium">设备类型:</span> {{ deviceType }}</div>
+        </div>
+      </div>
+
       <!-- 游戏棋盘 -->
       <div class="bg-white rounded-lg shadow-md p-4 md:p-6">
-        <!-- 移动端棋盘容器 -->
         <div class="flex justify-center w-full">
-          <div class="relative" :style="{ maxWidth: '100%' }">
-            <!-- 棋盘背景 -->
+          <div class="relative">
+            <!-- 棋盘容器 - 固定大小 -->
             <div
-                class="bg-amber-100 relative"
-                :style="{
-                  width: `${boardWidth}px`,
-                  height: `${boardHeight}px`,
-                  maxWidth: '100%',
-                  maxHeight: '100vw',
-                  border: '2px solid #8B4513'
-                }"
-              >
+              class="bg-amber-100 relative board-container"
+              :style="{
+                width: `${boardContainerSize}px`,
+                height: `${boardContainerSize}px`,
+                border: `${boardBorderWidth}px solid #8B4513`,
+              }"
+            >
               <!-- 棋盘网格线 -->
               <svg
                 class="absolute inset-0 w-full h-full"
-                :viewBox="`0 0 ${boardWidth} ${boardHeight}`"
+                :viewBox="`0 0 ${boardContainerSize} ${boardContainerSize}`"
               >
                 <!-- 垂直线 -->
                 <line
                   v-for="i in boardSize"
                   :key="`v-${i}`"
-                  :x1="i * boardCellSize"
-                  :y1="boardCellSize"
-                  :x2="i * boardCellSize"
-                  :y2="boardHeight"
-                  stroke="#8B4513"
-                  stroke-width="1"
+                  :x1="boardBorderWidth + i * gridSpacing"
+                  :y1="boardBorderWidth + gridSpacing"
+                  :x2="boardBorderWidth + i * gridSpacing"
+                  :y2="boardContainerSize - boardBorderWidth - gridSpacing"
+                  class="grid-line"
                 />
                 <!-- 水平线 -->
                 <line
                   v-for="i in boardSize"
                   :key="`h-${i}`"
-                  :x1="boardCellSize"
-                  :y1="i * boardCellSize"
-                  :x2="boardWidth"
-                  :y2="i * boardCellSize"
-                  stroke="#8B4513"
-                  stroke-width="1"
+                  :x1="boardBorderWidth + gridSpacing"
+                  :y1="boardBorderWidth + i * gridSpacing"
+                  :x2="boardContainerSize - boardBorderWidth - gridSpacing"
+                  :y2="boardBorderWidth + i * gridSpacing"
+                  class="grid-line"
                 />
               </svg>
 
@@ -73,25 +104,31 @@
                 v-for="(row, rowIndex) in board"
                 :key="rowIndex"
                 class="absolute"
-                :style="{ top: `${rowIndex * boardCellSize}px` }"
+                :style="{
+                  top: `${
+                    boardBorderWidth + (rowIndex + 1) * gridSpacing - pieceRadius
+                  }px`,
+                }"
               >
                 <div
                   v-for="(cell, colIndex) in row"
                   :key="colIndex"
-                  class="absolute flex items-center justify-center cursor-pointer"
-                  :style="{ 
-                    left: `${colIndex * boardCellSize}px`,
-                    width: `${boardCellSize}px`,
-                    height: `${boardCellSize}px`
+                  class="absolute flex items-center justify-center cursor-pointer board-cell"
+                  :style="{
+                    left: `${
+                      boardBorderWidth + (colIndex + 1) * gridSpacing - pieceRadius
+                    }px`,
+                    width: `${pieceDiameter}px`,
+                    height: `${pieceDiameter}px`,
                   }"
                   @click="handleMoveClick(rowIndex, colIndex)"
                 >
                   <div
                     v-if="cell"
-                    class="rounded-full shadow-lg"
+                    class="rounded-full shadow-lg piece"
                     :style="{
-                      width: `${Math.floor(boardCellSize * 0.8)}px`,
-                      height: `${Math.floor(boardCellSize * 0.8)}px`
+                      width: `${pieceDiameter}px`,
+                      height: `${pieceDiameter}px`,
                     }"
                     :class="
                       cell === 'black'
@@ -104,8 +141,8 @@
                     v-if="isPendingMove(rowIndex, colIndex)"
                     class="rounded-full border-2 border-dashed animate-pulse"
                     :style="{
-                      width: `${Math.floor(boardCellSize * 0.8)}px`,
-                      height: `${Math.floor(boardCellSize * 0.8)}px`
+                      width: `${pieceDiameter}px`,
+                      height: `${pieceDiameter}px`,
                     }"
                     :class="
                       game?.currentTurn === game?.player1Id
@@ -116,28 +153,16 @@
                   <!-- 最后一步棋的标记 -->
                   <div
                     v-if="isLastMove(rowIndex, colIndex)"
-                    class="absolute w-2 h-2 bg-red-500 rounded-full"
+                    class="absolute w-2 h-2 bg-red-500 rounded-full last-move-marker"
+                    :style="{
+                      top: `${pieceRadius - 4}px`,
+                      left: `${pieceRadius - 4}px`,
+                    }"
                   ></div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- 游戏控制 -->
-        <div class="mt-6 flex justify-center gap-4">
-          <button
-            @click="refreshGame"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors duration-200"
-          >
-            刷新游戏
-          </button>
-          <button
-            @click="goBack"
-            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition-colors duration-200"
-          >
-            返回列表
-          </button>
         </div>
       </div>
 
@@ -188,27 +213,71 @@ const route = useRoute();
 // 响应式数据
 const game = ref<any>(null);
 const board = ref<any[][]>([]);
-const boardSize = 15;
+const boardSize = 15; // 15路棋盘
 
-// 计算棋盘尺寸（移动端适配）
-const boardCellSize = computed(() => {
-  if (typeof window !== 'undefined') {
+// 棋盘尺寸计算 - 固定大小
+const boardContainerSize = computed(() => {
+  let width = 400;
+  if (typeof window !== "undefined") {
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    
+
     if (screenWidth < 768) {
-      // 移动端：计算最大可用尺寸
-      const maxWidth = screenWidth - 32; // 减去左右padding
-      const maxHeight = screenHeight * 0.6; // 使用60%的屏幕高度
-      const cellSize = Math.min(maxWidth / boardSize, maxHeight / boardSize, 35);
-      return Math.max(Math.floor(cellSize), 20); // 最小20px，确保整数
+      // 移动端：以宽度为主，最大400px
+      width = Math.min(screenWidth - 48, 400);
+    } else {
+      // PC端：以高度为主，最大480px
+      width = Math.min(screenHeight * 0.6, 480);
     }
   }
-  return 40; // 桌面端40px
+  return Math.floor(width / (boardSize + 1)) * (boardSize + 1) + 4;
 });
 
-const boardWidth = computed(() => boardSize * boardCellSize.value);
-const boardHeight = computed(() => boardSize * boardCellSize.value);
+// 棋盘边框宽度
+const boardBorderWidth = computed(() => {
+  return 2; // 2
+});
+
+// 落子区 + 边框宽度
+const tmpPlayableAreaSize = computed(() => {
+  return boardContainerSize.value - 2 * boardBorderWidth.value;
+});
+
+// 网格间距（路与路之间的间隔）
+const gridSpacing = computed(() => {
+  return tmpPlayableAreaSize.value / (boardSize + 1); // 边缘保留一个棋子的宽度
+});
+
+// 落子区大小（减去边框后的可用区域）
+const playableAreaSize = computed(() => {
+  return tmpPlayableAreaSize.value - 2 * gridSpacing.value;
+});
+
+// 棋子半径
+const pieceRadius = computed(() => {
+  return Math.floor(gridSpacing.value * 0.45); // 棋子半径为网格间距的45%
+});
+
+// 棋子直径
+const pieceDiameter = computed(() => {
+  return pieceRadius.value * 2;
+});
+
+// 开发环境检测
+const isDevelopment = computed(() => {
+  return (
+    typeof window !== "undefined" && window.location.hostname === "localhost"
+  );
+});
+
+// 设备类型检测
+const deviceType = computed(() => {
+  if (typeof window !== "undefined") {
+    return window.innerWidth < 768 ? "移动端" : "PC端";
+  }
+  return "未知";
+});
+
 const gameMessage = ref("");
 const showWinModal = ref(false);
 const winMessage = ref("");
@@ -325,10 +394,7 @@ const pollGameState = async () => {
   isPolling = true;
 
   try {
-    const gameData = await api.game.queryById(
-      route.params.id as string,
-      user.value?.id || ""
-    );
+    const gameData = await api.game.queryById(route.params.id as string);
     if (gameData) {
       // 检查是否有更新
       const currentTime = new Date(gameData.updatedAt).getTime();
@@ -391,44 +457,50 @@ const handleMoveClick = async (row: number, col: number) => {
   }
 
   // 如果是第一次点击该位置
-  if (!pendingMove.value || pendingMove.value.row !== row || pendingMove.value.col !== col) {
+  if (
+    !pendingMove.value ||
+    pendingMove.value.row !== row ||
+    pendingMove.value.col !== col
+  ) {
     // 清除之前的待确认落子
     clearPendingMove();
-    
+
     // 设置新的待确认落子
     pendingMove.value = { row, col };
-    
+
     // 设置3秒后自动清除
     pendingTimeout.value = setTimeout(() => {
       clearPendingMove();
       gameMessage.value = "落子确认超时，请重新点击";
     }, PENDING_DURATION);
-    
+
     gameMessage.value = "再次点击确认落子";
     return;
   }
 
   // 如果是第二次点击同一位置，执行落子
   clearPendingMove();
-  
+
   // 暂停轮询（因为此时是自己的回合，对方不能落子）
   stopPolling();
-  
+
   // 乐观更新：立即更新本地棋盘状态
-  const playerPiece = game.value?.currentTurn === game.value?.player1Id ? 'black' : 'white';
+  const playerPiece =
+    game.value?.currentTurn === game.value?.player1Id ? "black" : "white";
   board.value[row][col] = playerPiece;
-  
+
   // 更新游戏状态
   if (game.value) {
-    game.value.currentTurn = game.value.currentTurn === game.value.player1Id 
-      ? game.value.player2Id 
-      : game.value.player1Id;
+    game.value.currentTurn =
+      game.value.currentTurn === game.value.player1Id
+        ? game.value.player2Id
+        : game.value.player1Id;
   }
-  
+
   try {
     const response = await api.game.move(
       route.params.id as string,
-      user.value?.id || "",
+      user.value.id,
       row,
       col
     );
@@ -444,35 +516,18 @@ const handleMoveClick = async (row: number, col: number) => {
   } catch (error: any) {
     console.error("下棋失败:", error);
     gameMessage.value = error.data?.error || "下棋失败";
-    
+
     // 落子失败，回滚本地状态
     board.value[row][col] = null;
     if (game.value) {
-      game.value.currentTurn = game.value.currentTurn === game.value.player1Id 
-        ? game.value.player2Id 
-        : game.value.player1Id;
+      game.value.currentTurn =
+        game.value.currentTurn === game.value.player1Id
+          ? game.value.player2Id
+          : game.value.player1Id;
     }
-    
+
     // 重新启动轮询
     startPolling();
-  }
-};
-
-// 刷新游戏
-const refreshGame = async () => {
-  try {
-    const gameData = await api.game.queryById(
-      route.params.id as string,
-      user.value?.id || ""
-    );
-    if (gameData) {
-      game.value = gameData;
-      updateBoard(gameData.board);
-      gameMessage.value = "";
-    }
-  } catch (error) {
-    console.error("刷新游戏失败:", error);
-    gameMessage.value = "刷新游戏失败";
   }
 };
 
@@ -503,16 +558,16 @@ const goBack = () => {
 // 窗口大小变化处理
 const handleResize = () => {
   // 触发响应式更新
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     // 强制重新计算棋盘尺寸
     const screenWidth = window.innerWidth;
     const screenHeight = window.innerHeight;
-    console.log('窗口大小变化:', { 
-      screenWidth, 
-      screenHeight, 
-      boardCellSize: boardCellSize.value,
-      boardWidth: boardWidth.value,
-      boardHeight: boardHeight.value
+    console.log("窗口大小变化:", {
+      screenWidth,
+      screenHeight,
+      boardContainerSize: boardContainerSize.value,
+      gridSpacing: gridSpacing.value,
+      pieceRadius: pieceRadius.value,
     });
   }
 };
@@ -523,16 +578,24 @@ onMounted(async () => {
   initBoard();
 
   // 添加窗口大小变化监听
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', handleResize);
+  if (typeof window !== "undefined") {
+    window.addEventListener("resize", handleResize);
   }
+
+  // 调试信息：显示棋盘尺寸计算
+  console.log("棋盘尺寸计算:", {
+    boardSize,
+    boardContainerSize: boardContainerSize.value,
+    boardBorderWidth: boardBorderWidth.value,
+    playableAreaSize: playableAreaSize.value,
+    gridSpacing: gridSpacing.value,
+    pieceRadius: pieceRadius.value,
+    pieceDiameter: pieceDiameter.value,
+  });
 
   try {
     // 加载游戏数据
-    const gameData = await api.game.queryById(
-      route.params.id as string,
-      user.value?.id || ""
-    );
+    const gameData = await api.game.queryById(route.params.id as string);
     if (gameData) {
       game.value = gameData;
       updateBoard(gameData.board);
@@ -554,22 +617,21 @@ onBeforeUnmount(() => {
   console.log("组件卸载前停止轮询");
   stopPolling();
   clearPendingMove();
-  
+
   // 移除窗口大小变化监听
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleResize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", handleResize);
   }
 });
 
 // 组件卸载
 onUnmounted(() => {
-  console.log("组件卸载时确保轮询已停止");
   stopPolling();
   clearPendingMove();
-  
+
   // 移除窗口大小变化监听
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', handleResize);
+  if (typeof window !== "undefined") {
+    window.removeEventListener("resize", handleResize);
   }
 });
 </script>
@@ -578,10 +640,53 @@ onUnmounted(() => {
 /* 棋盘样式 */
 .board-cell {
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .board-cell:hover {
   background-color: rgba(139, 69, 19, 0.1);
+  transform: scale(1.05);
+}
+
+/* 棋子样式 */
+.piece {
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.piece:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* 棋盘容器样式 */
+.board-container {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 网格线样式 */
+.grid-line {
+  stroke: #8b4513;
+  stroke-width: 1;
+  opacity: 0.8;
+}
+
+/* 最后一步标记样式 */
+.last-move-marker {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
 }
 </style>

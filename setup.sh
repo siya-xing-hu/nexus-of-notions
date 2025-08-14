@@ -44,7 +44,7 @@ fi
 
 # 生成 Prisma 客户端
 echo "🔧 生成 Prisma 客户端..."
-npx prisma generate
+pnpm run db:generate
 
 echo ""
 echo "🎉 设置完成！"

@@ -1,10 +1,15 @@
 export {
   createOrGetUser,
+  queryAllUsers,
   queryUserByEmail,
   queryUserById,
-  queryAllUsers,
 } from "./service/user";
+export { addWeightRecord, queryAllWeightRecords } from "./service/weight";
 export {
-  addWeightRecord,
-  queryAllWeightRecords,
-} from "./service/weight";
+  createGame,
+  joinGame,
+  queryAvailableGames,
+  queryGameById,
+  queryUserGames,
+  updateGameMove,
+} from "./service/game";
