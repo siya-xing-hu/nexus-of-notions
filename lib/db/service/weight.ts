@@ -13,20 +13,22 @@ function prismaToDb(record: WeightRecord): DbWeightRecord {
 }
 
 export async function addWeightRecord(
-  weightRecord: DbWeightRecord,
+  user_id: string,
+  weight: number,
+  date: string,
 ): Promise<DbWeightRecord> {
   const record = await prisma.weightRecord.upsert({
     where: {
       userId_date: {
-        userId: weightRecord.user_id,
-        date: new Date(weightRecord.date),
+        userId: user_id,
+        date: new Date(date),
       },
     },
-    update: { weight: weightRecord.weight },
+    update: { weight: weight },
     create: {
-      userId: weightRecord.user_id,
-      weight: weightRecord.weight,
-      date: new Date(weightRecord.date),
+      userId: user_id,
+      weight: weight,
+      date: new Date(date),
     },
   });
 

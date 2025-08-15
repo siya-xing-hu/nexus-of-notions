@@ -25,15 +25,7 @@ export class WeightHandler {
       throw BusinessError.required("体重必须在 30-200 kg 之间");
     }
 
-    const recordDate = date || new Date().toISOString().split("T")[0];
-
     // 添加体重记录
-    await addWeightRecord({
-      id: 0,
-      user_id: userId,
-      weight: weight,
-      date: recordDate,
-      created_at: new Date().toISOString(),
-    });
+    await addWeightRecord(userId, weight, date);
   }
 }
