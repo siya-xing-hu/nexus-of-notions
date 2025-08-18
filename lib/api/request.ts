@@ -39,7 +39,7 @@ export async function request(
         : "网络请求失败";
       showGlobalError(errorMessage);
     }
-    return null;
+    throw error;
   }
 }
 

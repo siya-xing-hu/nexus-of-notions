@@ -29,6 +29,20 @@ Nexus of Notions (NoN) 是一个用于收集、管理和展示各种奇思妙想
   - 游戏状态管理 - 等待、进行中、结束状态
   - 获胜检测 - 自动检测五子连珠获胜条件
 
+### 📱 Telegram 频道搜索 (Telegram Search)
+- **功能描述**: 通过聊天方式搜索 Telegram 频道内容
+- **核心特性**: 
+  - 频道搜索 - 发送搜索词到指定频道获取回复
+  - 消息获取 - 获取频道最新消息
+  - 搜索历史 - 保存和快速访问常用搜索
+  - 消息展示 - 美观的消息卡片展示
+  - 复制功能 - 一键复制消息内容
+  - 频道信息 - 显示频道基本信息
+  - 等待时间配置 - 可调整机器人响应等待时间
+  - 会话持久化 - 自动保存和恢复登录状态
+  - 会话管理 - 支持自定义会话文件目录
+  - Telegram API 集成 - 使用 MTProto 协议
+
 ### 🚀 更多模块开发中...
 - 待添加的奇思妙想功能模块
 
@@ -47,23 +61,40 @@ components/              # Vue 组件
 ├── AddWeightForm.vue    # 体重记录表单
 ├── WeightChart.vue      # 体重图表
 ├── WeightTable.vue      # 体重表格
-└── gomoku/             # 五子棋游戏组件
-    ├── GameStatusBadge.vue  # 游戏状态徽章
+├── gomoku/             # 五子棋游戏组件
+│   └── GameStatusBadge.vue  # 游戏状态徽章
+└── telegram/           # Telegram 搜索组件
+    ├── MessageCard.vue     # 消息卡片
+    └── SearchHistory.vue   # 搜索历史
 pages/                   # 页面
 ├── index.vue           # 主页面
 ├── weight-tracker/     # 体重记录页面
-└── gomoku/             # 五子棋游戏页面
-    ├── index.vue       # 游戏列表页面
-    └── game/[id].vue   # 游戏对战页面
+├── gomoku/             # 五子棋游戏页面
+│   ├── index.vue       # 游戏列表页面
+│   └── game/[id].vue   # 游戏对战页面
+└── telegram/           # Telegram 搜索页面
+    └── index.vue       # 搜索主页面
 server/                  # API 路由
 └── api/                # API 路由
     ├── weight/         # 体重相关 API
-    └── game/           # 五子棋游戏 API
-        ├── index.ts    # 游戏管理 API
-        ├── [id]/       # 游戏详情 API
-        │   ├── index.ts
-        │   ├── move.ts # 移动 API
-        │   └── stream.ts # SSE 实时更新
+    ├── game/           # 五子棋游戏 API
+    │   ├── index.ts    # 游戏管理 API
+    │   └── [id]/       # 游戏详情 API
+    │       ├── index.ts
+    │       ├── move.ts # 移动 API
+    │       └── stream.ts # SSE 实时更新
+    └── telegram/       # Telegram API
+        └── index.ts    # 搜索和消息 API
+lib/                     # 核心库
+├── api/                # API 客户端
+│   ├── client/         # API 客户端
+│   │   ├── user.ts     # 用户 API
+│   │   ├── weight.ts   # 体重 API
+│   │   ├── game.ts     # 游戏 API
+│   │   └── telegram.ts # Telegram API
+│   └── index.ts        # API 聚合
+└── telegram/           # Telegram 服务
+    └── TelegramService.ts # Telegram API 服务
 prisma/                  # 数据库模型
 └── schema.prisma       # Prisma schema (包含 Game 模型)
 ```

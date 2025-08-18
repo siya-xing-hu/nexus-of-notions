@@ -5,7 +5,12 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "nuxt-icon"],
   components: {
-    dirs: ["~/components/weight", "~/components/exception", "~/components/gomoku"],
+    dirs: [
+      "~/components/weight",
+      "~/components/exception",
+      "~/components/gomoku",
+      "~/components/telegram",
+    ],
   },
   alias: {
     "@api": "~/lib/api",
@@ -15,6 +20,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // 私有配置（仅在服务器端可用）
     postgresUrl: process.env.POSTGRES_URL,
+    telegramApiId: process.env.TELEGRAM_API_ID,
+    telegramApiHash: process.env.TELEGRAM_API_HASH,
+    telegramSessionDir: process.env.TELEGRAM_SESSION_DIR,
   },
 
   // Vercel部署配置

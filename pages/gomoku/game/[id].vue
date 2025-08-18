@@ -549,12 +549,6 @@ const closeWinModal = () => {
   winMessage.value = "";
 };
 
-// 返回列表
-const goBack = () => {
-  stopPolling(); // 确保停止轮询
-  router.push("/gomoku");
-};
-
 // 窗口大小变化处理
 const handleResize = () => {
   // 触发响应式更新

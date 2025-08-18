@@ -37,6 +37,13 @@ export class BusinessError extends Error {
   }
 
   /**
+   * 无效请求错误
+   */
+  static invalidRequest(message: string): BusinessError {
+    return new BusinessError(message, 400);
+  }
+
+  /**
    * 方法不允许错误
    */
   static methodNotAllowed(): BusinessError {

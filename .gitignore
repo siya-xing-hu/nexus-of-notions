@@ -34,3 +34,5 @@ pnpm-debug.log*
 /generated/prisma
 
 /tmp
+
+/sessions/

@@ -101,6 +101,30 @@
           </div>
         </div>
 
+        <!-- Telegram Search Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <div class="p-6 text-center">
+            <div
+              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+            >
+              <MessageCircleIcon class="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">Telegram 搜索</h3>
+            <p class="text-purple-600 font-medium mb-4">频道内容搜索</p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+              通过聊天方式搜索 Telegram 频道内容，获取机器人的智能回复。
+            </p>
+            <button
+              @click="handleTelegramClick"
+              class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            >
+              开始搜索
+            </button>
+          </div>
+        </div>
+
         <!-- New Ideas Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border-2 border-dashed border-gray-200"
@@ -195,6 +219,7 @@ import {
   Star as StarIcon,
   Share as ShareIcon,
   Gamepad2 as Gamepad2Icon,
+  MessageCircle as MessageCircleIcon,
   Calendar,
   BookOpen,
   Target,
@@ -294,6 +319,17 @@ const handleGomokuClick = () => {
   } else {
     // 用户未登录，跳转到登录页面，并指定登录后跳转到五子棋游戏页面
     navigateTo("/login?redirect=/gomoku");
+  }
+};
+
+// 处理 Telegram 搜索点击
+const handleTelegramClick = () => {
+  if (userInfo.value) {
+    // 用户已登录，跳转到 Telegram 搜索页面
+    navigateTo("/telegram");
+  } else {
+    // 用户未登录，跳转到登录页面，并指定登录后跳转到 Telegram 搜索页面
+    navigateTo("/login?redirect=/telegram");
   }
 };
 
