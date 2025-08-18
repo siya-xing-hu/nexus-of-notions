@@ -54,13 +54,15 @@ export interface AuthState {
   needsTwoFactor: boolean;
 }
 
+// 内存存储，用于 Vercel 无服务器环境
+const memoryStorage = new Map<string, any>();
+
 export class TelegramService {
   private static instance: TelegramService | null = null;
   private mtproto: any = null;
   private apiId: number;
   private apiHash: string;
   private phoneNumber: string = "";
-  private sessionDir: string;
   private isInitialized = false;
   private authState: AuthState | null = null;
 
@@ -73,8 +75,6 @@ export class TelegramService {
 
     this.apiId = parseInt(config.telegramApiId as string);
     this.apiHash = config.telegramApiHash as string;
-    // 设置会话文件目录
-    this.sessionDir = (config.telegramSessionDir as string) || "./sessions";
   }
 
   // 获取单例实例
@@ -85,17 +85,9 @@ export class TelegramService {
     return TelegramService.instance;
   }
 
-  // 确保会话目录存在
-  private async ensureSessionDir(): Promise<void> {
-    try {
-      const fs = await import("fs");
-
-      if (!fs.existsSync(this.sessionDir)) {
-        fs.mkdirSync(this.sessionDir, { recursive: true });
-      }
-    } catch (error) {
-      console.warn("创建会话目录失败:", error);
-    }
+  // 检查是否为 Vercel 环境
+  private isVercelEnvironment(): boolean {
+    return process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
   }
 
   // 尝试从现有会话恢复认证状态
@@ -103,23 +95,25 @@ export class TelegramService {
     { isAuthenticated: boolean; phoneNumber?: string }
   > {
     try {
-      // 确保会话目录存在
-      await this.ensureSessionDir();
-
-      // 检查是否有任何会话文件存在
-      const fs = await import("fs");
-
-      if (!fs.existsSync(this.sessionDir)) {
+      // 在 Vercel 环境中，无法持久化存储会话，直接返回未认证状态
+      if (this.isVercelEnvironment()) {
+        console.log("Vercel 环境：无法恢复会话，需要重新认证");
         return { isAuthenticated: false };
       }
 
-      const allFiles = fs.readdirSync(this.sessionDir);
+      // 本地环境下的文件系统操作（保留原有逻辑）
+      const fs = await import("fs");
+      const sessionDir = "./sessions";
+
+      if (!fs.existsSync(sessionDir)) {
+        return { isAuthenticated: false };
+      }
+
+      const allFiles = fs.readdirSync(sessionDir);
 
       const sessionFiles = allFiles
         .filter((file: string) => file.startsWith("session.json"))
         .map((file: string) => {
-          // 处理文件名格式：session.json_phoneNumber
-          // 文件名是 session.json_8618724021828，需要提取 8618724021828
           if (file.startsWith("session.json_")) {
             const phoneNumber = file.replace("session.json_", "");
             return phoneNumber;
@@ -132,13 +126,9 @@ export class TelegramService {
         return { isAuthenticated: false };
       }
 
-      // 尝试使用第一个找到的会话文件
       const phoneNumber = sessionFiles[0];
-
-      // 初始化 MTProto 实例
       await this.initializeMTProto(phoneNumber);
 
-      // 检查认证状态
       try {
         const authStatus = await this.checkAuthStatus();
 
@@ -149,14 +139,12 @@ export class TelegramService {
             needsTwoFactor: false,
           };
         } else {
-          // 清理过期的会话文件
           this.cleanSessionFile(phoneNumber);
         }
 
         return authStatus;
       } catch (error: any) {
         console.error("检查认证状态时出错:", error);
-        // 处理 AUTH_RESTART 和 AUTH_KEY_UNREGISTERED 错误
         if (
           error.error_message === "AUTH_RESTART" ||
           error.error_message === "AUTH_KEY_UNREGISTERED"
@@ -177,20 +165,31 @@ export class TelegramService {
     this.phoneNumber = phoneNumber;
     const sessionId = phoneNumber.replace(/[^0-9]/g, "");
 
-    // 确保 MTProto 已加载
     const MTProtoClass = await loadMTProto();
 
-    const path = await import("path");
-    // 使用正确的命名格式：session.json_phoneNumber
-    const sessionPath = path.join(this.sessionDir, `session.json_${sessionId}`);
+    if (this.isVercelEnvironment()) {
+      // Vercel 环境：使用内存存储
+      this.mtproto = new MTProtoClass({
+        api_id: this.apiId,
+        api_hash: this.apiHash,
+        storageOptions: {
+          path: `memory://${sessionId}`,
+        },
+      });
+    } else {
+      // 本地环境：使用文件存储
+      const path = await import("path");
+      const sessionPath = path.join("./sessions", `session.json_${sessionId}`);
 
-    this.mtproto = new MTProtoClass({
-      api_id: this.apiId,
-      api_hash: this.apiHash,
-      storageOptions: {
-        path: sessionPath,
-      },
-    });
+      this.mtproto = new MTProtoClass({
+        api_id: this.apiId,
+        api_hash: this.apiHash,
+        storageOptions: {
+          path: sessionPath,
+        },
+      });
+    }
+    
     this.isInitialized = true;
   }
 
@@ -637,14 +636,21 @@ export class TelegramService {
 
   // 清理会话文件
   private async cleanSessionFile(phoneNumber: string) {
-    const fs = await import("fs");
-    const path = await import("path");
-    const sessionFile = path.join(
-      this.sessionDir,
-      `session.json_${phoneNumber}`,
-    );
-    if (fs.existsSync(sessionFile)) {
-      fs.unlinkSync(sessionFile);
+    if (!this.isVercelEnvironment()) {
+      // 本地环境：删除文件
+      const fs = await import("fs");
+      const path = await import("path");
+      const sessionFile = path.join(
+        "./sessions",
+        `session.json_${phoneNumber}`,
+      );
+      if (fs.existsSync(sessionFile)) {
+        fs.unlinkSync(sessionFile);
+      }
+    } else {
+      // Vercel 环境：清理内存存储
+      const sessionId = phoneNumber.replace(/[^0-9]/g, "");
+      memoryStorage.delete(`session_${sessionId}`);
     }
 
     this.mtproto = null;
