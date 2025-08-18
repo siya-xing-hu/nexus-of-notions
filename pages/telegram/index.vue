@@ -8,7 +8,7 @@
     <!-- 主聊天界面 -->
     <div v-else class="flex h-screen">
       <!-- 左侧频道列表 -->
-      <div class="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div class="w-80 bg-white border-r border-gray-200 flex flex-col md:block hidden">
         <!-- 频道列表标题 -->
         <div class="p-4 border-b border-gray-200">
           <h2 class="text-lg font-semibold text-gray-900">频道列表</h2>
@@ -17,18 +17,11 @@
         <!-- 添加频道表单 -->
         <div class="p-4 border-b border-gray-200">
           <div class="flex gap-2">
-            <input
-              v-model="newChannel"
-              type="text"
-              placeholder="输入频道用户名"
+            <input v-model="newChannel" type="text" placeholder="输入频道用户名"
               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-              @keyup.enter="addChannel"
-            />
-            <button
-              @click="addChannel"
-              :disabled="!newChannel.trim()"
-              class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-            >
+              @keyup.enter="addChannel" />
+            <button @click="addChannel" :disabled="!newChannel.trim()"
+              class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm">
               <Icon name="lucide:plus" class="w-4 h-4" />
             </button>
           </div>
@@ -36,17 +29,12 @@
 
         <!-- 频道列表 -->
         <div class="flex-1 overflow-y-auto">
-          <div
-            v-for="channel in channels"
-            :key="channel.username"
-            @click="selectChannel(channel)"
-            :class="[
-              'p-4 cursor-pointer hover:bg-gray-50 border-l-4 transition-colors',
-              selectedChannel?.username === channel.username
-                ? 'border-blue-500 bg-blue-50'
-                : 'border-transparent',
-            ]"
-          >
+          <div v-for="channel in channels" :key="channel.username" @click="selectChannel(channel)" :class="[
+            'p-4 cursor-pointer hover:bg-gray-50 border-l-4 transition-colors',
+            selectedChannel?.username === channel.username
+              ? 'border-blue-500 bg-blue-50'
+              : 'border-transparent',
+          ]">
             <div class="flex items-center justify-between">
               <div class="flex-1 min-w-0">
                 <h3 class="text-sm font-medium text-gray-900 truncate">
@@ -56,10 +44,7 @@
                   @{{ channel.username }}
                 </p>
               </div>
-              <button
-                @click.stop="removeChannel(channel.username)"
-                class="text-gray-400 hover:text-red-500 p-1"
-              >
+              <button @click.stop="removeChannel(channel.username)" class="text-gray-400 hover:text-red-500 p-1">
                 <Icon name="lucide:x" class="w-4 h-4" />
               </button>
             </div>
@@ -67,103 +52,88 @@
 
           <!-- 空状态 -->
           <div v-if="channels.length === 0" class="p-8 text-center">
-            <Icon
-              name="lucide:message-circle"
-              class="mx-auto h-8 w-8 text-gray-400 mb-2"
-            />
+            <Icon name="lucide:message-circle" class="mx-auto h-8 w-8 text-gray-400 mb-2" />
             <p class="text-sm text-gray-500">暂无频道，请添加频道开始聊天</p>
           </div>
         </div>
       </div>
 
       <!-- 右侧聊天区域 -->
-      <div class="flex-1 flex flex-col">
+      <div class="flex-1 flex flex-col w-full">
         <!-- 聊天头部 -->
-        <div
-          v-if="selectedChannel"
-          class="p-4 border-b border-gray-200 bg-white"
-        >
+        <div v-if="selectedChannel" class="p-4 border-b border-gray-200 bg-white">
           <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-lg font-semibold text-gray-900">
-                {{ selectedChannel.title || `@${selectedChannel.username}` }}
-              </h2>
-              <p class="text-sm text-gray-500">
-                @{{ selectedChannel.username }}
-              </p>
+            <div class="flex items-center gap-3">
+              <!-- 移动端频道选择器 -->
+              <div class="md:hidden">
+                <select v-model="selectedChannel.username" @change="handleChannelChange"
+                  class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option v-for="channel in channels" :key="channel.username" :value="channel.username">
+                    {{ channel.title || `@${channel.username}` }}
+                  </option>
+                </select>
+              </div>
+              <!-- 桌面端显示 -->
+              <div class="hidden md:block">
+                <h2 class="text-lg font-semibold text-gray-900">
+                  {{ selectedChannel.title || `@${selectedChannel.username}` }}
+                </h2>
+                <p class="text-sm text-gray-500">
+                  @{{ selectedChannel.username }}
+                </p>
+              </div>
             </div>
             <div class="flex items-center gap-2">
-              <button
-                @click="refreshMessages"
-                :disabled="loading"
-                class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
-              >
-                <Icon
-                  name="lucide:refresh-cw"
-                  :class="['w-4 h-4', { 'animate-spin': loading }]"
-                />
+              <!-- 移动端添加频道按钮 -->
+              <button @click="showMobileAddChannel = true"
+                class="md:hidden p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
+                <Icon name="lucide:plus" class="w-4 h-4" />
+              </button>
+              <button @click="refreshMessages" :disabled="loading"
+                class="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
+                <Icon name="lucide:refresh-cw" :class="['w-4 h-4', { 'animate-spin': loading }]" />
               </button>
             </div>
           </div>
         </div>
 
         <!-- 聊天消息区域 -->
-        <div ref="messagesContainer" class="flex-1 overflow-y-auto bg-gray-50">
+        <div ref="messagesContainer" class="flex-1 overflow-y-auto bg-gray-50 messages-container">
           <div v-if="selectedChannel" class="p-4 space-y-3">
             <!-- 消息列表 - 按时间顺序显示（历史消息在上，新消息在下） -->
-            <div
-              v-for="(message, index) in [...messages].reverse()"
-              :key="message.id"
-              class="flex"
-            >
-              <div class="flex-1 max-w-2xl">
+            <div v-for="(message, index) in [...messages].reverse()" :key="message.id" class="flex">
+              <div class="flex-1 max-w-2xl mx-auto">
                 <!-- 消息气泡 -->
-                <div
-                  class="bg-white rounded-lg shadow-sm border border-gray-200 p-3"
-                >
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-3 md:p-4">
                   <!-- 消息头部 -->
                   <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center space-x-2">
-                      <span class="text-xs text-gray-500"
-                        >#{{ messages.length - index }}</span
-                      >
+                      <span class="text-xs text-gray-500">#{{ messages.length - index }}</span>
                       <span v-if="message.from" class="text-xs text-blue-600">
                         {{ formatFrom(message.from) }}
                       </span>
                     </div>
-                    <div
-                      class="flex items-center space-x-2 text-xs text-gray-500"
-                    >
+                    <div class="flex items-center space-x-2 text-xs text-gray-500">
                       <span v-if="message.views" class="flex items-center">
                         <Icon name="lucide:eye" class="w-3 h-3 mr-1" />
-                        {{ message.views }}
+                        <span class="hidden md:inline">{{ message.views }}</span>
                       </span>
                       <span>{{ formatRelativeTime(message.date) }}</span>
                     </div>
                   </div>
 
                   <!-- 消息内容 -->
-                  <div
-                    class="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed"
-                  >
+                  <div class="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">
                     <!-- 回复信息 -->
-                    <div
-                      v-if="message.replyContent"
-                      class="mb-2 p-2 bg-gray-50 rounded text-xs text-gray-600 border-l-2 border-blue-400"
-                    >
+                    <div v-if="message.replyContent"
+                      class="mb-2 p-2 bg-gray-50 rounded text-xs text-gray-600 border-l-2 border-blue-400">
                       <div class="flex items-start">
-                        <Icon
-                          name="lucide:reply"
-                          class="w-3 h-3 mt-0.5 mr-1 flex-shrink-0"
-                        />
+                        <Icon name="lucide:reply" class="w-3 h-3 mt-0.5 mr-1 flex-shrink-0" />
                         <div class="flex-1 min-w-0">
                           <div class="font-medium text-gray-700 mb-1">
                             回复消息 #{{ message.replyContent.id }}
                           </div>
-                          <div
-                            v-if="message.replyContent.text"
-                            class="text-gray-600 truncate"
-                          >
+                          <div v-if="message.replyContent.text" class="text-gray-600 truncate">
                             {{ message.replyContent.text }}
                           </div>
                           <div v-else class="text-gray-500 italic">
@@ -177,34 +147,20 @@
                     <div v-html="formatMessageText(message.text)"></div>
 
                     <!-- 链接列表 -->
-                    <div
-                      v-if="message.links && message.links.length > 0"
-                      class="mt-3 space-y-1"
-                    >
+                    <div v-if="message.links && message.links.length > 0" class="mt-3 space-y-1">
                       <div class="text-xs text-gray-500 font-medium">链接:</div>
                       <div class="space-y-1">
-                        <a
-                          v-for="(link, linkIndex) in message.links"
-                          :key="linkIndex"
-                          :href="link.url"
-                          target="_blank"
+                        <a v-for="(link, linkIndex) in message.links" :key="linkIndex" :href="link.url" target="_blank"
                           rel="noopener noreferrer"
-                          class="block text-xs text-blue-600 hover:text-blue-800 hover:underline truncate"
-                        >
+                          class="block text-xs text-blue-600 hover:text-blue-800 hover:underline truncate">
                           {{ link.text }} → {{ link.url }}
                         </a>
                       </div>
                     </div>
 
                     <!-- 回复统计 -->
-                    <div
-                      v-if="message.hasReplies"
-                      class="mt-2 text-xs text-gray-500"
-                    >
-                      <Icon
-                        name="lucide:message-circle"
-                        class="w-3 h-3 inline mr-1"
-                      />
+                    <div v-if="message.hasReplies" class="mt-2 text-xs text-gray-500">
+                      <Icon name="lucide:message-circle" class="w-3 h-3 inline mr-1" />
                       {{ message.replyCount }} 条回复
                     </div>
                   </div>
@@ -221,14 +177,8 @@
             </div>
 
             <!-- 空状态 -->
-            <div
-              v-if="!loading && messages.length === 0"
-              class="text-center py-8"
-            >
-              <Icon
-                name="lucide:message-circle"
-                class="mx-auto h-12 w-12 text-gray-400 mb-4"
-              />
+            <div v-if="!loading && messages.length === 0" class="text-center py-8">
+              <Icon name="lucide:message-circle" class="mx-auto h-12 w-12 text-gray-400 mb-4" />
               <h3 class="text-lg font-medium text-gray-900 mb-2">暂无消息</h3>
               <p class="text-gray-500">开始发送消息吧</p>
             </div>
@@ -237,10 +187,7 @@
           <!-- 未选择频道状态 -->
           <div v-else class="flex items-center justify-center h-full">
             <div class="text-center">
-              <Icon
-                name="lucide:message-circle"
-                class="mx-auto h-16 w-16 text-gray-400 mb-4"
-              />
+              <Icon name="lucide:message-circle" class="mx-auto h-16 w-16 text-gray-400 mb-4" />
               <h3 class="text-xl font-medium text-gray-900 mb-2">
                 选择频道开始聊天
               </h3>
@@ -250,56 +197,66 @@
         </div>
 
         <!-- 聊天输入区域 -->
-        <div
-          v-if="selectedChannel"
-          class="p-4 bg-white border-t border-gray-200"
-        >
+        <div v-if="selectedChannel" class="p-4 bg-white border-t border-gray-200">
           <div class="flex gap-3">
-            <textarea
-              v-model="messageText"
-              rows="2"
-              placeholder="输入消息内容..."
+            <textarea v-model="messageText" rows="2" placeholder="输入消息内容..."
               class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-              @keydown.ctrl.enter="sendMessage"
-              :disabled="loading"
-            ></textarea>
-            <button
-              @click="sendMessage"
-              :disabled="loading || !messageText.trim()"
-              class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-            >
-              <Icon
-                v-if="loading"
-                name="lucide:loader-2"
-                class="animate-spin mr-2"
-              />
-              <Icon v-else name="lucide:send" class="mr-2" />
-              发送
+              @keydown.ctrl.enter="sendMessage" :disabled="loading"></textarea>
+            <button @click="sendMessage" :disabled="loading || !messageText.trim()"
+              class="px-4 md:px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+              <Icon v-if="loading" name="lucide:loader-2" class="animate-spin mr-1 md:mr-2" />
+              <Icon v-else name="lucide:send" class="mr-1 md:mr-2" />
+              <span class="hidden md:inline">发送</span>
             </button>
           </div>
-          <div class="mt-2 text-xs text-gray-500">按 Ctrl+Enter 快速发送</div>
+          <div class="mt-2 text-xs text-gray-500 hidden md:block">按 Ctrl+Enter 快速发送</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 移动端添加频道模态框 -->
+    <div v-if="showMobileAddChannel"
+      class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      @click="showMobileAddChannel = false">
+      <div class="bg-white rounded-lg p-6 w-full max-w-sm" @click.stop>
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-gray-900">添加频道</h3>
+          <button @click="showMobileAddChannel = false" class="text-gray-400 hover:text-gray-600">
+            <Icon name="lucide:x" class="w-5 h-5" />
+          </button>
+        </div>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              频道用户名
+            </label>
+            <input v-model="mobileNewChannel" type="text" placeholder="输入频道用户名"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              @keyup.enter="addMobileChannel" />
+          </div>
+          <div class="flex gap-2">
+            <button @click="addMobileChannel" :disabled="!mobileNewChannel.trim()"
+              class="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed">
+              添加
+            </button>
+            <button @click="showMobileAddChannel = false"
+              class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+              取消
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 错误提示 -->
-    <div
-      v-if="error"
-      class="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 max-w-md"
-    >
+    <div v-if="error" class="fixed bottom-4 right-4 bg-red-50 border border-red-200 rounded-lg p-4 max-w-md z-40">
       <div class="flex">
-        <Icon
-          name="lucide:alert-circle"
-          class="h-5 w-5 text-red-400 mr-2 flex-shrink-0"
-        />
+        <Icon name="lucide:alert-circle" class="h-5 w-5 text-red-400 mr-2 flex-shrink-0" />
         <div>
           <h3 class="text-sm font-medium text-red-800">操作失败</h3>
           <p class="text-sm text-red-700 mt-1">{{ error }}</p>
         </div>
-        <button
-          @click="error = ''"
-          class="ml-2 text-red-400 hover:text-red-600"
-        >
+        <button @click="error = ''" class="ml-2 text-red-400 hover:text-red-600">
           <Icon name="lucide:x" class="w-4 h-4" />
         </button>
       </div>
@@ -323,6 +280,10 @@ const isAuthenticated = ref(false);
 const channels = ref<ChannelInfo[]>([]);
 const selectedChannel = ref<ChannelInfo | null>(null);
 const newChannel = ref("");
+
+// 移动端相关
+const showMobileAddChannel = ref(false);
+const mobileNewChannel = ref("");
 
 // 消息输入
 const messageText = ref("");
@@ -417,6 +378,49 @@ const selectChannel = async (channel: ChannelInfo) => {
 
   // 自动加载消息
   await refreshMessages();
+};
+
+// 处理移动端频道切换
+const handleChannelChange = async () => {
+  const channel = channels.value.find(ch => ch.username === selectedChannel.value?.username);
+  if (channel) {
+    await selectChannel(channel);
+  }
+};
+
+// 移动端添加频道
+const addMobileChannel = async () => {
+  const username = mobileNewChannel.value.trim().replace("@", "");
+  if (!username) return;
+
+  try {
+    loading.value = true;
+    error.value = "";
+
+    // 检查频道是否已存在
+    if (channels.value.some((ch) => ch.username === username)) {
+      error.value = "频道已存在";
+      return;
+    }
+
+    // 获取频道信息
+    const channelInfo = await api.telegram.getChannelInfo(username);
+
+    // 添加到列表
+    channels.value.push(channelInfo);
+    saveChannels();
+
+    // 清空输入并关闭模态框
+    mobileNewChannel.value = "";
+    showMobileAddChannel.value = false;
+
+    // 如果只有1个频道，自动选择
+    if (channels.value.length === 1) {
+      selectChannel(channels.value[0]);
+    }
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 滚动到底部
@@ -575,5 +579,35 @@ onMounted(() => {
 
 .prose p {
   margin: 0;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .message-content {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .message-links {
+    font-size: 12px;
+  }
+}
+
+/* 自定义滚动条 */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>
