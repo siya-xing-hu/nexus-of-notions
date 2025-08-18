@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "nuxt-icon"],
   components: {
-    dirs: ["~/components/weight", "~/components/exception"],
+    dirs: ["~/components/weight", "~/components/exception", "~/components/gomoku"],
   },
   alias: {
     "@api": "~/lib/api",

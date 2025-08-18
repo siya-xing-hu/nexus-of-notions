@@ -8,11 +8,16 @@
       </div>
 
       <!-- 操作按钮 -->
-      <div class="flex justify-center mb-8">
+      <div class="flex justify-center mb-8 gap-4">
         <button @click="createGame" :disabled="isCreating"
           class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2">
           <Icon name="lucide:plus" class="w-5 h-5" />
           {{ isCreating ? "创建中..." : "创建新游戏" }}
+        </button>
+        <button @click="startAIGame"
+          class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2">
+          <Icon name="lucide:cpu" class="w-5 h-5" />
+          AI 对战
         </button>
       </div>
 
@@ -161,6 +166,11 @@ const joinGame = async (gameId: string) => {
 // 查看游戏
 const viewGame = (gameId: string) => {
   router.push(`/gomoku/game/${gameId}`);
+};
+
+// 跳转到AI对战页面
+const startAIGame = () => {
+  router.push('/gomoku/ai');
 };
 
 // 加载游戏列表
