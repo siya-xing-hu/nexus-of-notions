@@ -23,6 +23,7 @@ export default defineNuxtConfig({
     telegramApiId: process.env.TELEGRAM_API_ID,
     telegramApiHash: process.env.TELEGRAM_API_HASH,
     telegramSessionDir: process.env.TELEGRAM_SESSION_DIR,
+    VERCEL: process.env.VERCEL,
   },
 
   // Vercel部署配置

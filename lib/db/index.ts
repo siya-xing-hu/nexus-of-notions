@@ -13,3 +13,10 @@ export {
   queryUserGames,
   updateGameMove,
 } from "./service/game";
+export {
+  getActiveTelegramSession,
+  getTelegramSessionByPhoneNumber,
+  readTelegramSessionData,
+  writeTelegramSessionData,
+  deactivateTelegramSession,
+} from "./service/telegram";

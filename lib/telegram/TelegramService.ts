@@ -1,4 +1,10 @@
 import { BusinessError } from "../exception";
+import {
+  getActiveTelegramSession,
+  getTelegramSessionByPhoneNumber,
+  writeTelegramSessionData,
+  deactivateTelegramSession,
+} from "@/lib/db";
 
 // 动态导入 MTProto，避免服务器端问题
 let MTProto: any = null;
@@ -54,8 +60,33 @@ export interface AuthState {
   needsTwoFactor: boolean;
 }
 
-// 内存存储，用于 Vercel 无服务器环境
-const memoryStorage = new Map<string, any>();
+// 数据库存储适配器
+interface CustomStorage {
+  get(key: string): Promise<any>;
+  set(key: string, value: any): Promise<void>;
+}
+
+// 数据库存储实现
+class DatabaseStorage implements CustomStorage {
+  private phoneNumber: string;
+
+  constructor(phoneNumber: string) {
+    this.phoneNumber = phoneNumber;
+  }
+
+  async get(key: string): Promise<any> {
+    console.log("get", key);
+    const session = await getTelegramSessionByPhoneNumber(this.phoneNumber);
+    if (!session || !session.isActive) return null;
+    const sessionData = (session.sessionData as any) || {};
+    return sessionData[key] ?? null;
+  }
+
+  async set(key: string, value: any): Promise<void> {
+    console.log("set", key, value);
+    await writeTelegramSessionData(this.phoneNumber, { [key]: value });
+  }
+}
 
 export class TelegramService {
   private static instance: TelegramService | null = null;
@@ -65,6 +96,7 @@ export class TelegramService {
   private phoneNumber: string = "";
   private isInitialized = false;
   private authState: AuthState | null = null;
+  private storage: DatabaseStorage | null = null;
 
   constructor() {
     const config = useRuntimeConfig();
@@ -85,75 +117,46 @@ export class TelegramService {
     return TelegramService.instance;
   }
 
-  // 检查是否为 Vercel 环境
-  private isVercelEnvironment(): boolean {
-    return process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
-  }
-
   // 尝试从现有会话恢复认证状态
   async tryRestoreSession(): Promise<
     { isAuthenticated: boolean; phoneNumber?: string }
   > {
     try {
-      // 在 Vercel 环境中，无法持久化存储会话，直接返回未认证状态
-      if (this.isVercelEnvironment()) {
-        console.log("Vercel 环境：无法恢复会话，需要重新认证");
+      console.log("尝试从数据库恢复会话...");
+
+      // 查找活跃的会话
+      const activeSession = await getActiveTelegramSession();
+
+      if (!activeSession) {
+        console.log("数据库中没有活跃的会话");
         return { isAuthenticated: false };
       }
 
-      // 本地环境下的文件系统操作（保留原有逻辑）
-      const fs = await import("fs");
-      const sessionDir = "./sessions";
-
-      if (!fs.existsSync(sessionDir)) {
-        return { isAuthenticated: false };
-      }
-
-      const allFiles = fs.readdirSync(sessionDir);
-
-      const sessionFiles = allFiles
-        .filter((file: string) => file.startsWith("session.json"))
-        .map((file: string) => {
-          if (file.startsWith("session.json_")) {
-            const phoneNumber = file.replace("session.json_", "");
-            return phoneNumber;
-          }
-          return null;
-        })
-        .filter((phoneNumber): phoneNumber is string => phoneNumber !== null);
-
-      if (sessionFiles.length === 0) {
-        return { isAuthenticated: false };
-      }
-
-      const phoneNumber = sessionFiles[0];
-      await this.initializeMTProto(phoneNumber);
+      console.log(`发现活跃会话: ${activeSession.phoneNumber}`);
+      await this.initializeMTProto(activeSession.phoneNumber);
 
       try {
         const authStatus = await this.checkAuthStatus();
-
         if (authStatus.isAuthenticated) {
           this.authState = {
-            phoneNumber,
+            phoneNumber: activeSession.phoneNumber,
             isAuthenticated: true,
             needsTwoFactor: false,
           };
+          console.log("成功从数据库恢复会话");
+          return authStatus;
         } else {
-          this.cleanSessionFile(phoneNumber);
+          // 会话无效，清理数据库记录
+          await this.cleanSessionFromDatabase(activeSession.phoneNumber);
         }
-
-        return authStatus;
       } catch (error: any) {
-        console.error("检查认证状态时出错:", error);
-        if (
-          error.error_message === "AUTH_RESTART" ||
-          error.error_message === "AUTH_KEY_UNREGISTERED"
-        ) {
-          this.cleanSessionFile(phoneNumber);
-          return { isAuthenticated: false };
-        }
-        throw error;
+        console.error("从数据库恢复会话失败:", error);
+        // 清理无效的数据库会话记录
+        await this.cleanSessionFromDatabase(activeSession.phoneNumber);
       }
+
+      console.log("无法恢复会话，需要重新认证");
+      return { isAuthenticated: false };
     } catch (error) {
       console.error("恢复会话失败:", error);
       return { isAuthenticated: false };
@@ -163,33 +166,19 @@ export class TelegramService {
   // 初始化 MTProto 实例
   private async initializeMTProto(phoneNumber: string) {
     this.phoneNumber = phoneNumber;
-    const sessionId = phoneNumber.replace(/[^0-9]/g, "");
+    this.storage = new DatabaseStorage(phoneNumber);
 
     const MTProtoClass = await loadMTProto();
 
-    if (this.isVercelEnvironment()) {
-      // Vercel 环境：使用内存存储
-      this.mtproto = new MTProtoClass({
-        api_id: this.apiId,
-        api_hash: this.apiHash,
-        storageOptions: {
-          path: `memory://${sessionId}`,
-        },
-      });
-    } else {
-      // 本地环境：使用文件存储
-      const path = await import("path");
-      const sessionPath = path.join("./sessions", `session.json_${sessionId}`);
+    // 使用数据库存储
+    this.mtproto = new MTProtoClass({
+      api_id: this.apiId,
+      api_hash: this.apiHash,
+      storageOptions: {
+        instance: this.storage, // 使用数据库存储实例
+      },
+    });
 
-      this.mtproto = new MTProtoClass({
-        api_id: this.apiId,
-        api_hash: this.apiHash,
-        storageOptions: {
-          path: sessionPath,
-        },
-      });
-    }
-    
     this.isInitialized = true;
   }
 
@@ -251,8 +240,8 @@ export class TelegramService {
       if (error.error_message === "AUTH_RESTART") {
         console.log("检测到 AUTH_RESTART，清理现有会话并重试...");
 
-        // 清理现有会话文件
-        await this.cleanSessionFile(phoneNumber);
+        // 清理现有会话
+        await this.cleanSessionFromDatabase(phoneNumber);
 
         // 重新初始化并重试
         await this.initializeMTProto(phoneNumber);
@@ -399,8 +388,7 @@ export class TelegramService {
           );
         } else {
           throw BusinessError.invalidRequest(
-            `频道 ${channelUsername} 未找到。可用的频道: ${
-              availableChats.map((c: any) => `@${c.username}`).join(", ")
+            `频道 ${channelUsername} 未找到。可用的频道: ${availableChats.map((c: any) => `@${c.username}`).join(", ")
             }`,
           );
         }
@@ -630,32 +618,23 @@ export class TelegramService {
       await this.call("auth.logOut", {});
     }
 
-    // 清理会话文件
-    await this.cleanSessionFile(this.phoneNumber);
+    // 清理数据库中的会话
+    await this.cleanSessionFromDatabase(this.phoneNumber);
   }
 
-  // 清理会话文件
-  private async cleanSessionFile(phoneNumber: string) {
-    if (!this.isVercelEnvironment()) {
-      // 本地环境：删除文件
-      const fs = await import("fs");
-      const path = await import("path");
-      const sessionFile = path.join(
-        "./sessions",
-        `session.json_${phoneNumber}`,
-      );
-      if (fs.existsSync(sessionFile)) {
-        fs.unlinkSync(sessionFile);
-      }
-    } else {
-      // Vercel 环境：清理内存存储
-      const sessionId = phoneNumber.replace(/[^0-9]/g, "");
-      memoryStorage.delete(`session_${sessionId}`);
+  // 从数据库清理会话
+  private async cleanSessionFromDatabase(phoneNumber: string): Promise<void> {
+    try {
+      await deactivateTelegramSession(phoneNumber);
+      console.log(`数据库中的会话已清理: ${phoneNumber}`);
+    } catch (error) {
+      console.error("清理数据库会话失败:", error);
     }
 
     this.mtproto = null;
     this.isInitialized = false;
     this.authState = null;
     this.phoneNumber = "";
+    this.storage = null;
   }
 }
