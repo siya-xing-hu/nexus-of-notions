@@ -3,7 +3,7 @@ import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss", "nuxt-icon"],
+  modules: ["@nuxtjs/tailwindcss", "nuxt-icon", "@pinia/nuxt"],
   components: {
     dirs: [
       "~/components/weight",
@@ -23,7 +23,6 @@ export default defineNuxtConfig({
     telegramApiId: process.env.TELEGRAM_API_ID,
     telegramApiHash: process.env.TELEGRAM_API_HASH,
     telegramSessionDir: process.env.TELEGRAM_SESSION_DIR,
-    VERCEL: process.env.VERCEL,
   },
 
   // Vercel部署配置

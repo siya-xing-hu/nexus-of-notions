@@ -70,3 +70,15 @@ export function response<T>(
     return { success: false, result: data, error: error };
   }
 }
+
+// 全局错误显示函数
+export function showGlobalError(message: string) {
+  // 使用 Nuxt 的全局状态管理
+  if (typeof window !== "undefined") {
+    // 在客户端，通过事件总线或全局状态显示错误
+    const event = new CustomEvent("show-error", {
+      detail: { message },
+    });
+    window.dispatchEvent(event);
+  }
+}

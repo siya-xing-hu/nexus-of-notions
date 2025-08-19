@@ -1,5 +1,5 @@
 import type { Game, GameStatus } from "@prisma/client";
-import prisma from "../../../server/utils/prisma";
+import prisma from "@/stores/prisma";
 import type { DbGame, DbUser } from "../types";
 
 function prismaToDb(record: Game): DbGame {

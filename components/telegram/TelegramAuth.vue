@@ -1,20 +1,30 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
+  <div
+    class="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4"
+  >
     <div class="w-full max-w-md">
       <div class="bg-white rounded-2xl shadow-xl p-8">
         <div class="text-center mb-8">
           <div
-            class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mb-6">
+            class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mb-6"
+          >
             <Icon name="lucide:message-circle" class="h-8 w-8 text-white" />
           </div>
           <h3 class="text-2xl font-bold text-gray-900 mb-3">Telegram 认证</h3>
-          <p class="text-gray-600 leading-relaxed">请登录您的 Telegram 账号以使用聊天功能</p>
+          <p class="text-gray-600 leading-relaxed">
+            请登录您的 Telegram 账号以使用聊天功能
+          </p>
         </div>
 
         <!-- 初始化状态 -->
         <div v-if="initializing" class="text-center py-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4">
-            <Icon name="lucide:loader-2" class="h-6 w-6 text-blue-600 animate-spin" />
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mb-4"
+          >
+            <Icon
+              name="lucide:loader-2"
+              class="h-6 w-6 text-blue-600 animate-spin"
+            />
           </div>
           <h4 class="text-lg font-semibold text-gray-900 mb-2">
             正在检查登录状态...
@@ -24,13 +34,19 @@
 
         <!-- 认证状态 -->
         <div v-else-if="authStatus.isAuthenticated" class="text-center py-8">
-          <div class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4">
+          <div
+            class="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-4"
+          >
             <Icon name="lucide:check-circle" class="h-6 w-6 text-green-600" />
           </div>
           <h4 class="text-lg font-semibold text-gray-900 mb-2">认证成功</h4>
-          <p class="text-gray-600 mb-6 text-sm">已登录: {{ authStatus.phoneNumber }}</p>
-          <button @click="handleLogout"
-            class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200">
+          <p class="text-gray-600 mb-6 text-sm">
+            已登录: {{ authStatus.phoneNumber }}
+          </p>
+          <button
+            @click="handleLogout"
+            class="inline-flex items-center px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+          >
             <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
             退出登录
           </button>
@@ -41,21 +57,40 @@
           <!-- 手机号输入 -->
           <div v-if="authStep === 'phone'" class="space-y-4">
             <div>
-              <label for="phoneNumber" class="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                for="phoneNumber"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 手机号
               </label>
               <div class="relative">
-                <Icon name="lucide:phone"
-                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input id="phoneNumber" v-model="phoneNumber" type="tel" placeholder="+8613800138000"
+                <Icon
+                  name="lucide:phone"
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                />
+                <input
+                  id="phoneNumber"
+                  v-model="phoneNumber"
+                  type="tel"
+                  placeholder="+8613800138000"
                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                  :disabled="loading" />
+                  :disabled="loading"
+                />
               </div>
-              <p class="text-sm text-gray-500 mt-2">请输入包含国家代码的完整手机号</p>
+              <p class="text-sm text-gray-500 mt-2">
+                请输入包含国家代码的完整手机号
+              </p>
             </div>
-            <button @click="handleStartAuth" :disabled="loading || !phoneNumber"
-              class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium">
-              <Icon v-if="loading" name="lucide:loader-2" class="animate-spin mr-2" />
+            <button
+              @click="handleStartAuth"
+              :disabled="loading || !phoneNumber"
+              class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+            >
+              <Icon
+                v-if="loading"
+                name="lucide:loader-2"
+                class="animate-spin mr-2"
+              />
               <Icon v-else name="lucide:send" class="mr-2" />
               {{ loading ? "发送验证码中..." : "发送验证码" }}
             </button>
@@ -64,29 +99,49 @@
           <!-- 验证码输入 -->
           <div v-if="authStep === 'code'" class="space-y-4">
             <div>
-              <label for="phoneCode" class="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                for="phoneCode"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 验证码
               </label>
               <div class="relative">
-                <Icon name="lucide:key"
-                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input id="phoneCode" v-model="phoneCode" type="text" placeholder="12345"
+                <Icon
+                  name="lucide:key"
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                />
+                <input
+                  id="phoneCode"
+                  v-model="phoneCode"
+                  type="text"
+                  placeholder="12345"
                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                  :disabled="loading" />
+                  :disabled="loading"
+                />
               </div>
               <p class="text-sm text-gray-500 mt-2">
                 请输入发送到您 Telegram 应用的验证码
               </p>
             </div>
             <div class="flex gap-3">
-              <button @click="handleSubmitCode" :disabled="loading || !phoneCode"
-                class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium">
-                <Icon v-if="loading" name="lucide:loader-2" class="animate-spin mr-2" />
+              <button
+                @click="handleSubmitCode"
+                :disabled="loading || !phoneCode"
+                class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+              >
+                <Icon
+                  v-if="loading"
+                  name="lucide:loader-2"
+                  class="animate-spin mr-2"
+                />
                 <Icon v-else name="lucide:check" class="mr-2" />
                 {{ loading ? "验证中..." : "提交验证码" }}
               </button>
-              <button @click="resetAuth" :disabled="loading"
-                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+              <button
+                @click="resetAuth"
+                :disabled="loading"
+                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
                 <Icon name="lucide:refresh-cw" class="w-4 h-4" />
               </button>
             </div>
@@ -95,42 +150,51 @@
           <!-- 两步验证 -->
           <div v-if="authStep === 'twoFactor'" class="space-y-4">
             <div>
-              <label for="twoFactorPassword" class="block text-sm font-semibold text-gray-700 mb-2">
+              <label
+                for="twoFactorPassword"
+                class="block text-sm font-semibold text-gray-700 mb-2"
+              >
                 两步验证密码
               </label>
               <div class="relative">
-                <Icon name="lucide:shield"
-                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input id="twoFactorPassword" v-model="twoFactorPassword" type="password" placeholder="输入两步验证密码"
+                <Icon
+                  name="lucide:shield"
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400"
+                />
+                <input
+                  id="twoFactorPassword"
+                  v-model="twoFactorPassword"
+                  type="password"
+                  placeholder="输入两步验证密码"
                   class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200"
-                  :disabled="loading" />
+                  :disabled="loading"
+                />
               </div>
               <p class="text-sm text-gray-500 mt-2">
                 请输入您的 Telegram 两步验证密码
               </p>
             </div>
             <div class="flex gap-3">
-              <button @click="handleSubmitTwoFactor" :disabled="loading || !twoFactorPassword"
-                class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium">
-                <Icon v-if="loading" name="lucide:loader-2" class="animate-spin mr-2" />
+              <button
+                @click="handleSubmitTwoFactor"
+                :disabled="loading || !twoFactorPassword"
+                class="flex-1 bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-3 rounded-lg hover:from-purple-700 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
+              >
+                <Icon
+                  v-if="loading"
+                  name="lucide:loader-2"
+                  class="animate-spin mr-2"
+                />
                 <Icon v-else name="lucide:check" class="mr-2" />
                 {{ loading ? "验证中..." : "提交密码" }}
               </button>
-              <button @click="resetAuth" :disabled="loading"
-                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200">
+              <button
+                @click="resetAuth"
+                :disabled="loading"
+                class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
                 <Icon name="lucide:refresh-cw" class="w-4 h-4" />
               </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- 错误提示 -->
-        <div v-if="error && !initializing" class="mt-6 bg-red-50 border border-red-200 rounded-lg p-4">
-          <div class="flex">
-            <Icon name="lucide:alert-circle" class="h-5 w-5 text-red-400 mr-3 flex-shrink-0" />
-            <div>
-              <h3 class="text-sm font-semibold text-red-800">认证失败</h3>
-              <p class="text-sm text-red-700 mt-1">{{ error }}</p>
             </div>
           </div>
         </div>
@@ -141,7 +205,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { api } from "@/lib/api";
+import { api, showGlobalError } from "@/lib/api";
 
 interface AuthStatus {
   isAuthenticated: boolean;
@@ -157,7 +221,6 @@ const props = defineProps<Props>();
 // 响应式数据
 const loading = ref(false);
 const initializing = ref(true);
-const error = ref("");
 const authStep = ref<"phone" | "code" | "twoFactor">("phone");
 const authStatus = ref<AuthStatus>({ isAuthenticated: false });
 
@@ -169,7 +232,6 @@ const twoFactorPassword = ref("");
 // 检查认证状态
 const checkAuthStatus = async () => {
   try {
-    console.log("检查认证状态...");
     initializing.value = true;
     const status = await api.telegram.checkAuth();
     authStatus.value = status;
@@ -186,13 +248,11 @@ const checkAuthStatus = async () => {
 // 开始认证
 const handleStartAuth = async () => {
   if (!phoneNumber.value) {
-    error.value = "请输入手机号";
     return;
   }
 
   try {
     loading.value = true;
-    error.value = "";
 
     await api.telegram.startAuth(phoneNumber.value);
     authStep.value = "code";
@@ -204,14 +264,12 @@ const handleStartAuth = async () => {
 // 提交验证码
 const handleSubmitCode = async () => {
   if (!phoneCode.value) {
-    error.value = "请输入验证码";
+    showGlobalError("请输入验证码");
     return;
   }
 
   try {
     loading.value = true;
-    error.value = "";
-
     const result = await api.telegram.submitCode(phoneCode.value);
 
     if (result.success) {
@@ -226,7 +284,7 @@ const handleSubmitCode = async () => {
       resetAuth();
     }
   } catch (err: any) {
-    error.value = err.message || "验证码验证失败";
+    showGlobalError(err.message || "验证码验证失败");
   } finally {
     loading.value = false;
   }
@@ -235,13 +293,12 @@ const handleSubmitCode = async () => {
 // 提交两步验证
 const handleSubmitTwoFactor = async () => {
   if (!twoFactorPassword.value) {
-    error.value = "请输入两步验证密码";
+    showGlobalError("请输入两步验证密码");
     return;
   }
 
   try {
     loading.value = true;
-    error.value = "";
 
     const result = await api.telegram.submitTwoFactor(twoFactorPassword.value);
 
@@ -251,8 +308,7 @@ const handleSubmitTwoFactor = async () => {
       props.onAuthSuccess?.();
     }
   } catch (err: any) {
-    console.error("两步验证失败:", err);
-    error.value = err.message || "两步验证失败";
+    showGlobalError(err.message || "两步验证失败");
   } finally {
     loading.value = false;
   }
@@ -266,8 +322,7 @@ const handleLogout = async () => {
     authStatus.value = { isAuthenticated: false };
     resetAuth();
   } catch (err: any) {
-    console.error("退出登录失败:", err);
-    error.value = err.message || "退出登录失败";
+    showGlobalError(err.message || "退出登录失败");
   } finally {
     loading.value = false;
   }
@@ -279,12 +334,10 @@ const resetAuth = () => {
   phoneNumber.value = "";
   phoneCode.value = "";
   twoFactorPassword.value = "";
-  error.value = "";
 };
 
 // 生命周期
 onMounted(async () => {
-  console.log("TelegramAuth 组件挂载，尝试恢复会话...");
   await checkAuthStatus();
 });
 </script>

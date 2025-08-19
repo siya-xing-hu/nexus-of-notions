@@ -1,4 +1,4 @@
-import { prisma } from "../../../server/utils/prisma";
+import { prisma } from "@/stores/prisma";
 
 export async function getActiveTelegramSession() {
   return prisma.telegramSession.findFirst({ where: { isActive: true } });
@@ -22,7 +22,7 @@ export async function writeTelegramSessionData(
   const existing = await getTelegramSessionByPhoneNumber(phoneNumber);
   if (existing) {
     partialData = {
-      ...existing.sessionData,
+      ...(existing.sessionData as Record<string, any>),
       ...partialData,
     };
     return prisma.telegramSession.update({

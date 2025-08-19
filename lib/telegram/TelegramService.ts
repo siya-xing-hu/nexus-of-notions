@@ -1,9 +1,9 @@
 import { BusinessError } from "../exception";
 import {
+  deactivateTelegramSession,
   getActiveTelegramSession,
   getTelegramSessionByPhoneNumber,
   writeTelegramSessionData,
-  deactivateTelegramSession,
 } from "@/lib/db";
 
 // 动态导入 MTProto，避免服务器端问题
@@ -205,6 +205,22 @@ export class TelegramService {
         // 重试一次
         return await this.mtproto.call(method, params);
       }
+
+      // 检查是否是会话过期相关的错误或跟认证相关的错误
+      if (
+        error.error_message === "SESSION_REVOKED" ||
+        error.error_message === "SESSION_EXPIRED" ||
+        error.error_message === "AUTH_KEY_UNREGISTERED" ||
+        error.error_message === "AUTH_KEY_INVALID" ||
+        error.error_message === "AUTH_KEY_DUPLICATED"
+      ) {
+        console.log("检测到会话过期，正在重置认证状态...");
+
+        // 重置内存中的认证状态
+        if (this.authState) {
+          this.authState.isAuthenticated = false;
+        }
+      }
       throw error;
     }
   }
@@ -346,6 +362,10 @@ export class TelegramService {
       return { isAuthenticated: false };
     }
 
+    if (this.authState?.isAuthenticated) {
+      return { isAuthenticated: true, phoneNumber: this.phoneNumber };
+    }
+
     try {
       await this.call("users.getUsers", { id: [{ _: "inputUserSelf" }] });
       return { isAuthenticated: true, phoneNumber: this.phoneNumber };
@@ -388,7 +408,8 @@ export class TelegramService {
           );
         } else {
           throw BusinessError.invalidRequest(
-            `频道 ${channelUsername} 未找到。可用的频道: ${availableChats.map((c: any) => `@${c.username}`).join(", ")
+            `频道 ${channelUsername} 未找到。可用的频道: ${
+              availableChats.map((c: any) => `@${c.username}`).join(", ")
             }`,
           );
         }

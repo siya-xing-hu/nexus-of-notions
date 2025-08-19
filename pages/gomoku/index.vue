@@ -9,13 +9,18 @@
 
       <!-- 操作按钮 -->
       <div class="flex justify-center mb-8 gap-4">
-        <button @click="createGame" :disabled="isCreating"
-          class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2">
+        <button
+          @click="createGame"
+          :disabled="isCreating"
+          class="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2"
+        >
           <Icon name="lucide:plus" class="w-5 h-5" />
           {{ isCreating ? "创建中..." : "创建新游戏" }}
         </button>
-        <button @click="startAIGame"
-          class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2">
+        <button
+          @click="startAIGame"
+          class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2"
+        >
           <Icon name="lucide:cpu" class="w-5 h-5" />
           AI 对战
         </button>
@@ -25,19 +30,30 @@
       <div class="grid gap-6">
         <!-- 我的游戏 -->
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2
+            class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2"
+          >
             <Icon name="lucide:gamepad-2" class="w-5 h-5" />
             我的游戏
           </h2>
 
-          <div v-if="myGames.length === 0" class="text-center py-8 text-gray-500">
-            <Icon name="lucide:gamepad-2" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <div
+            v-if="myGames.length === 0"
+            class="text-center py-8 text-gray-500"
+          >
+            <Icon
+              name="lucide:gamepad-2"
+              class="w-16 h-16 mx-auto mb-4 text-gray-300"
+            />
             <p>还没有游戏记录</p>
           </div>
 
           <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div v-for="game in myGames" :key="game.id"
-              class="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+            <div
+              v-for="game in myGames"
+              :key="game.id"
+              class="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+            >
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <p class="font-medium text-gray-900">
@@ -50,8 +66,10 @@
               </div>
 
               <div class="flex gap-2">
-                <button @click="viewGame(game.id)"
-                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded transition-colors duration-200">
+                <button
+                  @click="viewGame(game.id)"
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm py-2 px-3 rounded transition-colors duration-200"
+                >
                   查看
                 </button>
               </div>
@@ -61,19 +79,30 @@
 
         <!-- 可加入的游戏 -->
         <div class="bg-white rounded-lg shadow-md p-6">
-          <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+          <h2
+            class="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2"
+          >
             <Icon name="lucide:users" class="w-5 h-5" />
             可加入的游戏
           </h2>
 
-          <div v-if="availableGames.length === 0" class="text-center py-8 text-gray-500">
-            <Icon name="lucide:users" class="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <div
+            v-if="availableGames.length === 0"
+            class="text-center py-8 text-gray-500"
+          >
+            <Icon
+              name="lucide:users"
+              class="w-16 h-16 mx-auto mb-4 text-gray-300"
+            />
             <p>暂时没有可加入的游戏</p>
           </div>
 
           <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <div v-for="game in availableGames" :key="game.id"
-              class="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+            <div
+              v-for="game in availableGames"
+              :key="game.id"
+              class="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+            >
               <div class="flex justify-between items-start mb-3">
                 <div>
                   <p class="font-medium text-gray-900">
@@ -86,8 +115,11 @@
                 <GameStatusBadge :status="game.status" />
               </div>
 
-              <button @click="joinGame(game.id)" :disabled="game.status !== 'WAITING'"
-                class="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm py-2 px-3 rounded transition-colors duration-200">
+              <button
+                @click="joinGame(game.id)"
+                :disabled="game.status !== 'WAITING'"
+                class="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white text-sm py-2 px-3 rounded transition-colors duration-200"
+              >
                 "加入游戏"
               </button>
             </div>
@@ -102,6 +134,7 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { api } from "@/lib/api";
+import { useUser } from "@/composables/useUser";
 
 const router = useRouter();
 
@@ -110,16 +143,8 @@ const myGames = ref<any[]>([]);
 const availableGames = ref<any[]>([]);
 const isCreating = ref(false);
 
-// 从缓存中获取用户信息
-const user = ref<any>(null);
-
-// 从 localStorage 获取用户信息
-const loadUserFromCache = () => {
-  const userInfoStr = localStorage.getItem("user-info");
-  if (userInfoStr) {
-    user.value = JSON.parse(userInfoStr);
-  }
-};
+// 用户状态管理
+const user = useUser().user;
 
 // 格式化日期
 const formatDate = (dateString: string) => {
@@ -136,7 +161,7 @@ const formatDate = (dateString: string) => {
 const createGame = async () => {
   try {
     isCreating.value = true;
-    const game = await api.game.create(user.value.id, 15);
+    const game = await api.game.create(user!.id, 15);
 
     if (game) {
       // 跳转到游戏页面
@@ -152,7 +177,7 @@ const createGame = async () => {
 // 加入游戏
 const joinGame = async (gameId: string) => {
   try {
-    const game = await api.game.join(gameId, user.value.id);
+    const game = await api.game.join(gameId, user!.id);
 
     if (game) {
       // 跳转到游戏页面
@@ -170,14 +195,14 @@ const viewGame = (gameId: string) => {
 
 // 跳转到AI对战页面
 const startAIGame = () => {
-  router.push('/gomoku/ai');
+  router.push("/gomoku/ai");
 };
 
 // 加载游戏列表
 const loadGames = async () => {
   try {
     // 加载我正在进行中的游戏
-    const myGamesData = await api.game.queryUserGames(user.value.id, "PLAYING");
+    const myGamesData = await api.game.queryUserGames(user!.id, "PLAYING");
     if (myGamesData) {
       myGames.value = myGamesData;
     }
@@ -194,7 +219,6 @@ const loadGames = async () => {
 
 // 组件挂载时加载数据
 onMounted(() => {
-  loadUserFromCache();
   loadGames();
 });
 </script>

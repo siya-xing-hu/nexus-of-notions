@@ -1,4 +1,4 @@
-import { HttpMethod, ReqObj, Resp } from "./index";
+import { HttpMethod, ReqObj, Resp, showGlobalError } from "./index";
 
 export interface RequestOptions<TBody = ReqObj, TQuery = Record<string, any>> {
   body?: TBody;
@@ -40,17 +40,5 @@ export async function request(
       showGlobalError(errorMessage);
     }
     throw error;
-  }
-}
-
-// 全局错误显示函数
-function showGlobalError(message: string) {
-  // 使用 Nuxt 的全局状态管理
-  if (typeof window !== "undefined") {
-    // 在客户端，通过事件总线或全局状态显示错误
-    const event = new CustomEvent("show-error", {
-      detail: { message },
-    });
-    window.dispatchEvent(event);
   }
 }

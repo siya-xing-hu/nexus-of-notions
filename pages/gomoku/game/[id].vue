@@ -106,7 +106,9 @@
                 class="absolute"
                 :style="{
                   top: `${
-                    boardBorderWidth + (rowIndex + 1) * gridSpacing - pieceRadius
+                    boardBorderWidth +
+                    (rowIndex + 1) * gridSpacing -
+                    pieceRadius
                   }px`,
                 }"
               >
@@ -116,7 +118,9 @@
                   class="absolute flex items-center justify-center cursor-pointer board-cell"
                   :style="{
                     left: `${
-                      boardBorderWidth + (colIndex + 1) * gridSpacing - pieceRadius
+                      boardBorderWidth +
+                      (colIndex + 1) * gridSpacing -
+                      pieceRadius
                     }px`,
                     width: `${pieceDiameter}px`,
                     height: `${pieceDiameter}px`,
@@ -206,6 +210,7 @@
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { api } from "@/lib/api";
+import { useUser } from "@/composables/useUser";
 
 const router = useRouter();
 const route = useRoute();
@@ -289,16 +294,8 @@ const pendingMove = ref<{ row: number; col: number } | null>(null);
 const pendingTimeout = ref<any>(null);
 const PENDING_DURATION = 3000; // 3秒确认时间
 
-// 从缓存中获取用户信息
-const user = ref<any>(null);
-
-// 从 localStorage 获取用户信息
-const loadUserFromCache = () => {
-  const userInfoStr = localStorage.getItem("user-info");
-  if (userInfoStr) {
-    user.value = JSON.parse(userInfoStr);
-  }
-};
+// 用户状态管理
+const { user } = useUser();
 
 // 计算属性
 const currentTurnText = computed(() => {
@@ -312,7 +309,7 @@ const currentTurnText = computed(() => {
 });
 
 const isMyTurn = computed(() => {
-  return game.value?.currentTurn === user.value?.id;
+  return game.value?.currentTurn === user!.id;
 });
 
 const canMakeMove = computed(() => {
@@ -357,7 +354,7 @@ const startPolling = () => {
   }
 
   // 如果现在是自己的回合，不启动轮询
-  if (game.value?.currentTurn === user.value?.id) {
+  if (game.value?.currentTurn === user!.id) {
     return;
   }
 
@@ -387,7 +384,7 @@ const pollGameState = async () => {
   }
 
   // 如果是自己的回合，不需要轮询
-  if (game.value?.currentTurn === user.value?.id) {
+  if (game.value?.currentTurn === user!.id) {
     return;
   }
 
@@ -420,7 +417,7 @@ const pollGameState = async () => {
 
 // 处理游戏结束
 const handleGameEnd = (gameData: any) => {
-  if (gameData.winner === user.value?.id) {
+  if (gameData.winner === user!.id) {
     winMessage.value = "恭喜！你获胜了！";
   } else if (gameData.winner) {
     const winnerName =
@@ -500,7 +497,7 @@ const handleMoveClick = async (row: number, col: number) => {
   try {
     const response = await api.game.move(
       route.params.id as string,
-      user.value.id,
+      user!.id,
       row,
       col
     );
@@ -534,7 +531,7 @@ const handleMoveClick = async (row: number, col: number) => {
 // 创建新游戏
 const createNewGame = async () => {
   try {
-    const newGame = await api.game.create(user.value?.id || "", 15);
+    const newGame = await api.game.create(user!.id, 15);
     if (newGame) {
       router.push(`/gomoku/game/${newGame.id}`);
     }
@@ -568,7 +565,6 @@ const handleResize = () => {
 
 // 组件挂载
 onMounted(async () => {
-  loadUserFromCache();
   initBoard();
 
   // 添加窗口大小变化监听
