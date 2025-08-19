@@ -7,7 +7,7 @@ export interface DbUser {
 }
 
 export interface DbWeightRecord {
-  id: number;
+  id: string;
   user_id: string;
   weight: number;
   date: string;

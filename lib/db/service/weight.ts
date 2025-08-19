@@ -17,28 +17,22 @@ export async function addWeightRecord(
   weight: number,
   date: string,
 ): Promise<void> {
-  const record = await prisma.weightRecord.findUnique({
+  await prisma.weightRecord.upsert({
     where: {
       userId_date: {
         userId: user_id,
         date: new Date(date),
       },
     },
+    update: {
+      weight: weight,
+    },
+    create: {
+      userId: user_id,
+      weight: weight,
+      date: new Date(date),
+    },
   });
-  if (record) {
-    await prisma.weightRecord.update({
-      where: { id: record.id },
-      data: { weight: weight },
-    });
-  } else {
-    await prisma.weightRecord.create({
-      data: {
-        userId: user_id,
-        weight: weight,
-        date: new Date(date),
-      },
-    });
-  }
 }
 
 export async function queryAllWeightRecords(

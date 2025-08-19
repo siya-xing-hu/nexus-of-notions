@@ -28,7 +28,7 @@ model User {
 }
 
 model WeightRecord {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(uuid())
   userId    String   @map("user_id")
   weight    Decimal  @db.Decimal(5, 2)
   date      DateTime @db.Date
