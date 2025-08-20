@@ -10,6 +10,7 @@ function prismaToChannel(record: TelegramChannel): DbTelegramChannel {
     access_hash: record.accessHash,
     title: record.title,
     username: record.username,
+    type: record.type,
     permissions: record.permissions as any,
     created_at: record.createdAt.toISOString(),
     updated_at: record.updatedAt.toISOString(),
@@ -20,12 +21,12 @@ function prismaToChannel(record: TelegramChannel): DbTelegramChannel {
 export async function queryUserChannels(
   userId: string,
 ): Promise<DbTelegramChannel[]> {
-  // const records = await prisma.telegramChannel.findMany({
-  //   where: { userId },
-  //   orderBy: { createdAt: "desc" },
-  // });
+  const records = await prisma.telegramChannel.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
 
-  return [];
+  return records.map(prismaToChannel);
 }
 
 // 创建或更新用户的频道
@@ -44,6 +45,7 @@ export async function createOrUpdateUserChannel(
       channelId: channelInfo.channel_id,
       accessHash: channelInfo.access_hash,
       title: channelInfo.title,
+      type: channelInfo.type,
       permissions: channelInfo.permissions,
       updatedAt: new Date(),
     },
@@ -53,6 +55,7 @@ export async function createOrUpdateUserChannel(
       accessHash: channelInfo.access_hash,
       title: channelInfo.title,
       username: channelInfo.username,
+      type: channelInfo.type,
       permissions: channelInfo.permissions,
     },
   });

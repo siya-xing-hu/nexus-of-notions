@@ -78,18 +78,25 @@ model TelegramSession {
 }
 
 model TelegramChannel {
-  id          String   @id @default(uuid())
-  userId      String   @map("user_id")
-  channelId   String   @map("channel_id") // Telegram 频道 ID
-  accessHash  String   @map("access_hash") // Telegram 频道访问哈希
-  title       String // 频道标题
+  id          String           @id @default(uuid())
+  userId      String           @map("user_id")
+  channelId   String           @map("channel_id") // Telegram 频道 ID
+  accessHash  String           @map("access_hash") // Telegram 频道访问哈希
+  title       String // 频道标f
   username    String // 频道用户名
+  type        ChannelType      @default(CHANNEL) // 频道类型：频道、机器人、个人用户
   permissions Json? // 用户在该频道的权限信息
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, username]) // 确保每个用户下频道用户名唯一
   @@map("telegram_channels")
+}
+
+enum ChannelType {
+  CHANNEL // 频道
+  BOT     // 机器人
+  USER    // 个人用户
 }
