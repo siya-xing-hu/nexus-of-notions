@@ -3,13 +3,14 @@ import { H3Event } from "h3";
 import { userApi } from "./client/user";
 import { weightApi } from "./client/weight";
 import { gameApi } from "./client/game";
-import { telegramApi } from "./client/telegram";
+import { telegramApi, telegramChannelApi } from "./client/telegram";
 
 export const api = {
   user: userApi,
   weight: weightApi,
   game: gameApi,
   telegram: telegramApi,
+  telegramChannel: telegramChannelApi,
 };
 
 export type ApiClient = typeof api;

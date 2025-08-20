@@ -2,11 +2,8 @@ import { defineEventHandler, readBody } from "h3";
 import { HttpMethod, ReqObj, Resp, response } from "@/lib/api";
 import { BusinessError } from "@/lib/exception/BusinessError";
 import { SystemError } from "@/lib/exception/SystemError";
-import {
-  ChannelInfo,
-  TelegramMessage,
-  TelegramService,
-} from "@/lib/telegram/TelegramService";
+import { Telegram, TelegramMessage } from "@/lib/telegram";
+import { DbTelegramChannel } from "@/lib/db/types";
 
 export default defineEventHandler(async (event) => {
   switch (event.method) {
@@ -77,7 +74,7 @@ async function handleStartAuth(
     throw BusinessError.required("手机号是必需的");
   }
 
-  return await TelegramService.getInstance().startAuth(phoneNumber);
+  return await Telegram.getAuth().startAuth(phoneNumber);
 }
 
 async function handleSubmitCode(
@@ -90,7 +87,7 @@ async function handleSubmitCode(
     throw BusinessError.required("验证码是必需的");
   }
 
-  return await TelegramService.getInstance().submitCode(phoneCode);
+  return await Telegram.getAuth().submitCode(phoneCode);
 }
 
 async function handleSubmitTwoFactor(
@@ -101,34 +98,34 @@ async function handleSubmitTwoFactor(
     throw BusinessError.required("两步验证密码是必需的");
   }
 
-  return await TelegramService.getInstance().submitTwoFactorPassword(password);
+  return await Telegram.getAuth().submitTwoFactorPassword(password);
 }
 
 async function handleCheckAuth(): Promise<
   { isAuthenticated: boolean; phoneNumber?: string }
 > {
-  let result = await TelegramService.getInstance().checkAuthStatus();
+  let result = await Telegram.getAuth().checkAuthStatus();
 
   if (!result.isAuthenticated) {
-    result = await TelegramService.getInstance().tryRestoreSession();
+    result = await Telegram.getAuth().tryRestoreSession();
   }
 
   return result;
 }
 
 async function handleLogout(): Promise<void> {
-  await TelegramService.getInstance().logout();
+  await Telegram.getAuth().logout();
 }
 
 async function handleGetChannelInfo(
   channelUsername: string,
-): Promise<ChannelInfo> {
+): Promise<DbTelegramChannel> {
   // 参数验证
   if (!channelUsername) {
     throw BusinessError.required("频道用户名是必需的");
   }
 
-  return await TelegramService.getInstance().getChannelInfo(channelUsername);
+  return await Telegram.getService().getChannelInfo(channelUsername);
 }
 
 async function handleSendMessage(
@@ -144,7 +141,7 @@ async function handleSendMessage(
     throw BusinessError.required("消息内容是必需的");
   }
 
-  await TelegramService.getInstance().sendMessage(channelUsername, message);
+  await Telegram.getService().sendMessage(channelUsername, message);
 }
 
 async function handleGetMessages(
@@ -157,7 +154,7 @@ async function handleGetMessages(
     throw BusinessError.required("频道用户名是必需的");
   }
 
-  return await TelegramService.getInstance().getChannelMessages(
+  return await Telegram.getService().getChannelMessages(
     channelUsername,
     limit,
     offsetId,

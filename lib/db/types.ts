@@ -1,7 +1,22 @@
+import { ChannelType, GameStatus } from "@prisma/client";
+
 export interface DbUser {
   id: string;
   name: string;
   email: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbTelegramChannel {
+  id: string;
+  user_id: string;
+  channel_id: string;
+  access_hash: string;
+  title: string;
+  username: string;
+  type: ChannelType;
+  permissions?: any;
   created_at: string;
   updated_at: string;
 }
@@ -15,23 +30,23 @@ export interface DbWeightRecord {
 }
 
 export interface DbGame {
-  id: string
-  name: string
-  player1Id: string
-  player2Id: string | null
-  status: 'WAITING' | 'PLAYING' | 'FINISHED'
-  board: any[][]
-  currentTurn: string | null
-  winner: string | null
-  lastMove: any | null
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  player1_id: string;
+  player2_id: string | null;
+  status: GameStatus;
+  board: any[][];
+  current_turn: string | null;
+  winner: string | null;
+  last_move: any | null;
+  created_at: string;
+  updated_at: string;
   player1?: {
-    id: string
-    name: string
-  }
+    id: string;
+    name: string;
+  };
   player2?: {
-    id: string
-    name: string
-  } | null
+    id: string;
+    name: string;
+  } | null;
 }
