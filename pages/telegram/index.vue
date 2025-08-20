@@ -21,6 +21,7 @@
           @channel-selected="handleChannelSelected"
           @channel-added="handleChannelAdded"
           @channel-removed="handleChannelRemoved"
+          @channel-refreshed="handleChannelRefreshed"
         />
       </div>
 
@@ -62,48 +63,50 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { api, showGlobalError } from "@/lib/api";
-import { TelegramMessage, ChannelInfo } from "@/lib/telegram/TelegramService";
+import { TelegramMessage } from "@/lib/telegram";
+import { DbTelegramChannel } from "@/lib/db/types";
+import { useUser } from "@/composables/useUser";
 
 // 响应式数据
 const loading = ref(false);
 const isAuthenticated = ref(false);
-const messages = ref<Map<number, TelegramMessage[]>>(new Map());
+const messageMap = ref<Map<string, TelegramMessage[]>>(new Map());
 
 // 频道管理
-const channels = ref<ChannelInfo[]>([]);
-const selectedChannel = ref<ChannelInfo | null>(null);
+const channels = ref<DbTelegramChannel[]>([]);
+const selectedChannel = ref<DbTelegramChannel | null>(null);
+
+const user = useUser().user;
 
 // 当前频道的消息
 const currentMessages = computed(() => {
   if (!selectedChannel.value) return [];
-  return messages.value.get(selectedChannel.value.id) || [];
+  return messageMap.value.get(selectedChannel.value.id) || [];
 });
 
-// 从 localStorage 加载频道列表
-const loadChannels = () => {
-  const channelsStr = localStorage.getItem("telegram-channels");
-  if (channelsStr) {
-    channels.value = JSON.parse(channelsStr);
-    if (channels.value.length > 0) {
-      handleChannelSelected(channels.value[0]);
+// 从数据库加载频道列表
+const loadChannels = async () => {
+  try {
+    const userChannels = await api.telegramChannel.getUserChannels(user!.id);
+
+    if (userChannels.length === 0) {
+      // 添加默认频道 yunpanchat
+      await handleChannelAdded("yunpanchat");
+      channels.value = await api.telegramChannel.getUserChannels(user!.id);
+    } else {
+      channels.value = userChannels;
     }
-  } else {
-    // 添加默认频道 yunpanchat
-    handleChannelAdded("yunpanchat");
+  } catch (error) {
+    showGlobalError("加载频道列表失败");
   }
 };
 
-// 保存频道列表到 localStorage
-const saveChannels = () => {
-  localStorage.setItem("telegram-channels", JSON.stringify(channels.value));
-};
-
 // 处理频道选择
-const handleChannelSelected = async (channel: ChannelInfo) => {
+const handleChannelSelected = async (channel: DbTelegramChannel) => {
   selectedChannel.value = channel;
 
   // 如果当前频道没有消息，自动加载
-  if (!messages.value.has(channel.id)) {
+  if (!messageMap.value.has(channel.id)) {
     await refreshMessages();
   }
 };
@@ -114,7 +117,9 @@ const handleChannelAdded = async (username: string) => {
     loading.value = true;
 
     // 检查频道是否已存在
-    if (channels.value.some((ch) => ch.username === username)) {
+    if (
+      channels.value.some((ch: DbTelegramChannel) => ch.username === username)
+    ) {
       showGlobalError("频道已存在");
       return;
     }
@@ -122,31 +127,77 @@ const handleChannelAdded = async (username: string) => {
     // 获取频道信息
     const channelInfo = await api.telegram.getChannelInfo(username);
 
-    // 添加到列表
-    channels.value.push(channelInfo);
-    saveChannels();
+    // 保存到数据库
+    const savedChannel = await api.telegramChannel.addOrUpdateChannel(
+      user!.id,
+      channelInfo
+    );
 
-    // 如果只有1个频道，自动选择
-    if (channels.value.length === 1) {
-      handleChannelSelected(channelInfo);
-    }
+    // 添加到列表
+    channels.value.push(savedChannel);
+
+    handleChannelSelected(savedChannel);
   } finally {
     loading.value = false;
   }
 };
 
 // 处理移除频道
-const handleChannelRemoved = (username: string) => {
-  const index = channels.value.findIndex((ch) => ch.username === username);
-  if (index > -1) {
-    const channel = channels.value[index];
-    messages.value.delete(channel.id);
-    if (selectedChannel.value?.id === channel.id) {
-      selectedChannel.value = null;
-    }
+const handleChannelRemoved = async (id: string) => {
+  try {
+    // 从数据库删除
+    await api.telegramChannel.deleteChannel(id);
 
-    channels.value.splice(index, 1);
-    saveChannels();
+    // 从本地列表移除
+    const index = channels.value.findIndex((ch) => ch.id === id);
+    if (index > -1) {
+      const channel = channels.value[index];
+      messageMap.value.delete(channel.id);
+      if (selectedChannel.value?.id === channel.id) {
+        selectedChannel.value = null;
+      }
+
+      channels.value.splice(index, 1);
+    }
+  } catch (error) {
+    console.error("删除频道失败:", error);
+    showGlobalError("删除频道失败");
+  }
+};
+
+// 处理刷新频道
+const handleChannelRefreshed = async (channel: DbTelegramChannel) => {
+  try {
+    loading.value = true;
+
+    // 重新获取频道信息
+    const updatedChannelInfo = await api.telegram.getChannelInfo(
+      channel.username
+    );
+
+    // 更新数据库中的频道信息
+    const savedChannel = await api.telegramChannel.addOrUpdateChannel(
+      user!.id,
+      updatedChannelInfo
+    );
+
+    // 更新频道列表中的频道信息
+    const index = channels.value.findIndex(
+      (ch) => ch.username === channel.username
+    );
+    if (index > -1) {
+      channels.value[index] = savedChannel;
+
+      // 如果当前选中的频道被刷新，更新选中状态
+      if (selectedChannel.value?.username === channel.username) {
+        selectedChannel.value = savedChannel;
+      }
+    }
+  } catch (error) {
+    console.error("刷新频道信息失败:", error);
+    showGlobalError("刷新频道信息失败");
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -163,7 +214,7 @@ const refreshMessages = async () => {
       0
     );
 
-    messages.value.set(selectedChannel.value.id, results);
+    messageMap.value.set(selectedChannel.value.id, results);
   } finally {
     loading.value = false;
   }
@@ -181,10 +232,10 @@ const handleSendMessage = async (messageText: string) => {
     // 发送消息到频道
     await api.telegram.sendMessage(selectedChannel.value.username, messageText);
 
-    // 异步1秒后刷新消息列表
+    // 异步2秒后刷新消息列表
     setTimeout(async () => {
       await refreshMessages();
-    }, 1000);
+    }, 2000);
   } finally {
     loading.value = false;
   }

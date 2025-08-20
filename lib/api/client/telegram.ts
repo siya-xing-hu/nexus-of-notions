@@ -1,6 +1,7 @@
-import { ChannelInfo, TelegramMessage } from "@/lib/telegram/TelegramService";
+import { TelegramMessage } from "@/lib/telegram";
 import { HttpMethod } from "../index";
 import { request } from "../request";
+import { DbTelegramChannel } from "@/lib/db/types";
 
 export const telegramApi = {
   // 认证相关方法
@@ -18,7 +19,9 @@ export const telegramApi = {
         type: "submitCode",
         data: { phoneCode },
       },
-    }) as Promise<{ success: boolean; needsTwoFactor?: boolean; authRestart?: boolean }>,
+    }) as Promise<
+      { success: boolean; needsTwoFactor?: boolean; authRestart?: boolean }
+    >,
 
   submitTwoFactor: (password: string) =>
     request("/api/telegram", HttpMethod.POST, {
@@ -66,7 +69,7 @@ export const telegramApi = {
           channelUsername,
         },
       },
-    }) as Promise<ChannelInfo>,
+    }) as Promise<DbTelegramChannel>,
 
   // 发送消息到频道
   sendMessage: (channelUsername: string, message: string) =>
@@ -82,3 +85,26 @@ export const telegramApi = {
 };
 
 export type TelegramApi = typeof telegramApi;
+
+// 频道管理 API
+export const telegramChannelApi = {
+  // 获取用户的频道列表
+  getUserChannels: (userId: string) =>
+    request("/api/telegram/channels", HttpMethod.GET, {
+      query: { userId },
+    }) as Promise<DbTelegramChannel[]>,
+
+  // 添加或更新频道
+  addOrUpdateChannel: (userId: string, channelInfo: DbTelegramChannel) =>
+    request("/api/telegram/channels", HttpMethod.POST, {
+      body: { data: { userId, channelInfo } },
+    }) as Promise<DbTelegramChannel>,
+
+  // 删除频道
+  deleteChannel: (id: string) =>
+    request("/api/telegram/channels", HttpMethod.DELETE, {
+      query: { id },
+    }) as Promise<{ success: boolean }>,
+};
+
+export type TelegramChannelApi = typeof telegramChannelApi;

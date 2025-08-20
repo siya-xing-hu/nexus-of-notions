@@ -8,9 +8,8 @@
         <span
           class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
         >
-          消息 #{{ index + 1 }}
+          消息 #{{ message.id }}
         </span>
-        <span class="text-sm text-gray-500">ID: {{ message.id }}</span>
         <span v-if="message.from" class="text-sm text-gray-500">
           来自: {{ formatFrom(message.from) }}
         </span>
@@ -48,26 +47,6 @@
         class="text-gray-900 whitespace-pre-wrap leading-relaxed break-words"
         v-html="formatMessageText(message.text)"
       ></p>
-
-      <!-- 链接列表 - 只显示链接名称，不显示URL -->
-      <div
-        v-if="message.links && message.links.length > 0"
-        class="mt-3 space-y-1"
-      >
-        <div class="text-xs text-gray-500 font-medium">链接:</div>
-        <div class="space-y-1">
-          <a
-            v-for="(link, linkIndex) in message.links"
-            :key="linkIndex"
-            :href="link.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="block text-xs text-blue-600 hover:text-blue-800 hover:underline break-all"
-          >
-            {{ link.text }}
-          </a>
-        </div>
-      </div>
 
       <!-- 回复统计 -->
       <div v-if="message.hasReplies" class="mt-2 text-xs text-gray-500">
@@ -137,11 +116,10 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { TelegramMessage } from "@/lib/telegram/TelegramService";
+import { TelegramMessage } from "@/lib/telegram";
 
 interface Props {
   message: TelegramMessage;
-  index: number;
 }
 
 const props = defineProps<Props>();
@@ -208,7 +186,7 @@ const toggleExpand = () => {
   isExpanded.value = !isExpanded.value;
 };
 
-// 格式化消息文本，支持 Markdown 样式
+// 格式化消息文本，支持 Markdown 样式和自动链接检测
 const formatMessageText = (text: string) => {
   let formattedText = text;
 
@@ -218,16 +196,22 @@ const formatMessageText = (text: string) => {
     "<strong>$1</strong>"
   );
 
-  // 处理代码文本 (`text`)
+  // 处理代码文本 (`text`) - 在代码块内的内容不处理链接
   formattedText = formattedText.replace(
     /`(.*?)`/g,
     '<code class="bg-gray-100 px-1 rounded text-sm">$1</code>'
   );
 
-  // 处理链接 [text](url) - 只显示文本部分
+  // 处理 Markdown 链接 [text](url) - 只显示文本部分
   formattedText = formattedText.replace(
     /\[(.*?)\]\((.*?)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
+  );
+
+  // 检测并转换纯文本中的 URL（排除已经在 HTML 标签内的内容）
+  formattedText = formattedText.replace(
+    /(?<!<[^>]*)(https?:\/\/[^\s<>"{}|\\^`\[\]]+)(?![^<]*>)/gi,
+    '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">$1</a>'
   );
 
   // 处理换行

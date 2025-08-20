@@ -19,11 +19,12 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  
-  weightRecords WeightRecord[]
-  gamesAsPlayer1 Game[] @relation("Player1")
-  gamesAsPlayer2 Game[] @relation("Player2")
-  
+
+  weightRecords    WeightRecord[]
+  gamesAsPlayer1   Game[]            @relation("Player1")
+  gamesAsPlayer2   Game[]            @relation("Player2")
+  telegramChannels TelegramChannel[]
+
   @@map("users")
 }
 
@@ -33,36 +34,36 @@ model WeightRecord {
   weight    Decimal  @db.Decimal(5, 2)
   date      DateTime @db.Date
   createdAt DateTime @default(now()) @map("created_at")
-  
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@unique([userId, date])
   @@map("weight_records")
 }
 
 model Game {
-  id          String   @id @default(uuid())
-  name        String   @map("name")
-  player1Id   String   @map("player1_id")
-  player2Id   String?  @map("player2_id")
+  id          String     @id @default(uuid())
+  name        String     @map("name")
+  player1Id   String     @map("player1_id")
+  player2Id   String?    @map("player2_id")
   status      GameStatus @default(WAITING)
-  board       Json     // 15x15 棋盘状态
-  currentTurn String?  @map("current_turn") // 当前轮到哪个玩家
-  winner      String?  // 获胜者ID
-  lastMove    Json?    @map("last_move") // 最后一步棋的位置
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  player1 User @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  board       Json // 15x15 棋盘状态
+  currentTurn String?    @map("current_turn") // 当前轮到哪个玩家
+  winner      String? // 获胜者ID
+  lastMove    Json?      @map("last_move") // 最后一步棋的位置
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  player1 User  @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
   player2 User? @relation("Player2", fields: [player2Id], references: [id], onDelete: SetNull)
-  
+
   @@map("games")
 }
 
 enum GameStatus {
-  WAITING    // 等待玩家加入
-  PLAYING    // 游戏进行中
-  FINISHED   // 游戏结束
+  WAITING // 等待玩家加入
+  PLAYING // 游戏进行中
+  FINISHED // 游戏结束
 }
 
 model TelegramSession {
@@ -72,6 +73,23 @@ model TelegramSession {
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
+
   @@map("telegram_sessions")
+}
+
+model TelegramChannel {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  channelId   String   @map("channel_id") // Telegram 频道 ID
+  accessHash  String   @map("access_hash") // Telegram 频道访问哈希
+  title       String // 频道标题
+  username    String // 频道用户名
+  permissions Json? // 用户在该频道的权限信息
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, username]) // 确保每个用户下频道用户名唯一
+  @@map("telegram_channels")
 }
