@@ -22,13 +22,13 @@
   "dependencies": {
     "@mtproto/core": "^6.2.0",
     "@pinia/nuxt": "^0.11.2",
-    "@prisma/client": "^5.10.2",
+    "@prisma/client": "^6.13.0",
     "@vercel/postgres": "^0.5.0",
     "chart.js": "^4.4.0",
     "lucide-vue-next": "^0.537.0",
     "nuxt-icon": "^1.0.0-beta.7",
     "pinia": "^3.0.3",
-    "prisma": "^5.10.2",
+    "prisma": "^6.13.0",
     "sharp": "^0.34.3",
     "uuid": "^11.1.0",
     "vue-chartjs": "^5.2.0"
