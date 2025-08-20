@@ -31,7 +31,7 @@ async function handleGet(event: any, gameId: string): Promise<Resp<DbGame>> {
     return response(event, null, error, error.errorCode);
   }
 
-  const player1 = await queryUserById(game.player1Id);
+  const player1 = await queryUserById(game.player1_id);
   if (!player1) {
     const error = BusinessError.notFound("玩家 1 不存在").toErrorObj();
     return response(event, null, error, error.errorCode);
@@ -41,8 +41,8 @@ async function handleGet(event: any, gameId: string): Promise<Resp<DbGame>> {
     name: player1.name,
   };
 
-  if (game.player2Id) {
-    const player2 = await queryUserById(game.player2Id);
+  if (game.player2_id) {
+    const player2 = await queryUserById(game.player2_id);
     if (!player2) {
       const error = BusinessError.notFound("玩家 2 不存在").toErrorObj();
       return response(event, null, error, error.errorCode);

@@ -1,4 +1,4 @@
-import type { Game, GameStatus } from "@prisma/client";
+import type { Game } from "@prisma/client";
 import prisma from "@/stores/prisma";
 import type { DbGame, DbUser } from "../types";
 
@@ -6,15 +6,15 @@ function prismaToDb(record: Game): DbGame {
   return {
     id: record.id,
     name: record.name,
-    player1Id: record.player1Id,
-    player2Id: record.player2Id,
-    status: record.status,
+    player1_id: record.player1Id,
+    player2_id: record.player2Id,
+    status: record.status as "WAITING" | "PLAYING" | "FINISHED",
     board: record.board as any[][],
-    currentTurn: record.currentTurn,
+    current_turn: record.currentTurn,
     winner: record.winner,
-    lastMove: record.lastMove,
-    createdAt: record.createdAt.toISOString(),
-    updatedAt: record.updatedAt.toISOString(),
+    last_move: record.lastMove,
+    created_at: record.createdAt.toISOString(),
+    updated_at: record.updatedAt.toISOString(),
   };
 }
 
@@ -82,10 +82,10 @@ export async function queryUserGames(
  * 查询可加入的游戏列表
  */
 export async function queryAvailableGames(
-  status: GameStatus,
+  status: "WAITING" | "PLAYING" | "FINISHED",
 ): Promise<DbGame[]> {
   const games = await prisma.game.findMany({
-    where: { status },
+    where: { status: status as any },
     orderBy: {
       updatedAt: "desc",
     },

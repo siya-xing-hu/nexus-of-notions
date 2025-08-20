@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 import { Telegram } from ".";
 import { DbTelegramChannel } from "../db/types";
-import { ChannelType } from "@prisma/client";
 import { BusinessError } from "../exception";
 import { TelegramClient } from "./client";
 
@@ -42,19 +41,19 @@ export class TelegramService {
       );
 
       // 根据 peer 类型确定用户类型
-      let type: ChannelType = ChannelType.CHANNEL;
+      let type: "CHANNEL" | "BOT" | "USER" = "CHANNEL";
       let channel: any = null;
 
       if (resolvedPeer.peer._ === "peerChannel") {
-        type = ChannelType.CHANNEL;
+        type = "CHANNEL";
         channel = resolvedPeer.chats?.find((chat: any) => chat.username === cleanUsername);
       } else if (resolvedPeer.peer._ === "peerUser") {
         // 需要进一步检查是否是机器人
         const user = resolvedPeer.users?.find((u: any) => u.username === cleanUsername);
         if (user && user.bot) {
-          type = ChannelType.BOT;
+          type = "BOT";
         } else {
-          type = ChannelType.USER;
+          type = "USER";
         }
         channel = resolvedPeer.users?.find((user: any) => user.username === cleanUsername);
       } else {
@@ -151,10 +150,10 @@ export class TelegramService {
     };
 
     try {
-      if (baseChannelInfo.type === ChannelType.CHANNEL) {
+      if (baseChannelInfo.type === "CHANNEL") {
         // 频道权限处理
         permissions = await this.getChannelPermissions(baseChannelInfo);
-      } else if (baseChannelInfo.type === ChannelType.BOT) {
+      } else if (baseChannelInfo.type === "BOT") {
         // 机器人权限处理
         permissions = {
           canSendMessages: true, // 机器人通常可以发送消息
@@ -162,7 +161,7 @@ export class TelegramService {
           isAdmin: false,
           isCreator: false,
         };
-      } else if (baseChannelInfo.type === ChannelType.USER) {
+      } else if (baseChannelInfo.type === "USER") {
         // 个人用户权限处理
         permissions = {
           canSendMessages: true, // 个人用户通常可以发送消息
@@ -174,7 +173,7 @@ export class TelegramService {
     } catch (error) {
       console.log("获取权限信息失败，使用默认权限:", error);
       // 如果获取权限失败，根据类型设置默认权限
-      if (baseChannelInfo.type === ChannelType.CHANNEL) {
+      if (baseChannelInfo.type === "CHANNEL") {
         permissions.canSendMessages = false;
         permissions.canPostMessages = false;
       } else {
@@ -278,7 +277,7 @@ export class TelegramService {
 
       // 根据类型构建不同的 peer 对象
       let peer: any;
-      if (channelInfo.type === ChannelType.CHANNEL) {
+      if (channelInfo.type === "CHANNEL") {
         peer = {
           _: "inputPeerChannel",
           channel_id: channelInfo.channel_id,
@@ -317,7 +316,7 @@ export class TelegramService {
 
       // 根据类型构建不同的 peer 对象
       let peer: any;
-      if (channelInfo.type === ChannelType.CHANNEL) {
+      if (channelInfo.type === "CHANNEL") {
         peer = {
           _: "inputPeerChannel",
           channel_id: channelInfo.channel_id,

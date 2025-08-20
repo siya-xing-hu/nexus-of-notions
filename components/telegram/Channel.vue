@@ -42,14 +42,13 @@
               <!-- 类型标识 -->
               <span :class="[
                 'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium',
-                channel.type === ChannelType.CHANNEL ? 'bg-blue-100 text-blue-800' :
-                  channel.type === ChannelType.BOT ? 'bg-green-100 text-green-800' :
+                channel.type === 'CHANNEL' ? 'bg-blue-100 text-blue-800' :
+                  channel.type === 'BOT' ? 'bg-green-100 text-green-800' :
                     'bg-gray-100 text-gray-800'
-              ]"
-                :title="channel.type === ChannelType.CHANNEL ? '频道' : channel.type === ChannelType.BOT ? '机器人' : '用户'">
-                <Icon :name="channel.type === ChannelType.CHANNEL ? 'lucide:hash' :
-                  channel.type === ChannelType.BOT ? 'lucide:bot' : 'lucide:user'" class="w-3 h-3 mr-0.5" />
-                {{ channel.type === ChannelType.CHANNEL ? '频道' : channel.type === ChannelType.BOT ? '机器人' : '用户' }}
+              ]" :title="channel.type === 'CHANNEL' ? '频道' : channel.type === 'BOT' ? '机器人' : '用户'">
+                <Icon :name="channel.type === 'CHANNEL' ? 'lucide:hash' :
+                  channel.type === 'BOT' ? 'lucide:bot' : 'lucide:user'" class="w-3 h-3 mr-0.5" />
+                {{ channel.type === 'CHANNEL' ? '频道' : channel.type === 'BOT' ? '机器人' : '用户' }}
               </span>
               <!-- 权限标识 -->
               <div v-if="channel.permissions" class="flex items-center gap-1">
@@ -75,7 +74,7 @@
             </div>
           </div>
           <!-- 频道操作组件 -->
-          <div class="channel-item-actions opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div class="channel-item-actions">
             <!-- 加载指示器 -->
             <div v-if="loadingChannel === channel.username" class="flex items-center justify-center w-8 h-8">
               <Icon name="lucide:loader-2" class="w-4 h-4 text-blue-500 animate-spin" />
@@ -115,7 +114,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 import { DbTelegramChannel } from "@/lib/db/types";
-import { ChannelType } from "@prisma/client";
 
 interface Props {
   channels: DbTelegramChannel[];

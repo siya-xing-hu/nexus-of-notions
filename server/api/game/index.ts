@@ -4,7 +4,6 @@ import { BusinessError, SystemError } from "@/lib/exception";
 import { GameHandler } from "@/lib/handler";
 import { queryAvailableGames, queryUserGames } from "@/lib/db";
 import { DbGame } from "@/lib/db/types";
-import { GameStatus } from "@prisma/client";
 
 export default defineEventHandler(async (event) => {
   switch (event.method) {
@@ -53,9 +52,9 @@ async function handleGet(event: any): Promise<Resp<DbGame[]>> {
       games = await queryUserGames(userId, status);
     } else if (status) {
       // 查询可加入的游戏
-      games = await queryAvailableGames(status as GameStatus);
+      games = await queryAvailableGames(status as any);
       // 剔除自己创建的游戏
-      games = games.filter((game) => game.player1Id !== userId);
+      games = games.filter((game) => game.player1_id !== userId);
     } else {
       throw BusinessError.required("用户ID或状态参数是必需的");
     }

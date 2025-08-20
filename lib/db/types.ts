@@ -1,5 +1,3 @@
-import { ChannelType, GameStatus } from "@prisma/client";
-
 export interface DbUser {
   id: string;
   name: string;
@@ -15,7 +13,7 @@ export interface DbTelegramChannel {
   access_hash: string;
   title: string;
   username: string;
-  type: ChannelType;
+  type: "CHANNEL" | "BOT" | "USER";
   permissions?: any;
   created_at: string;
   updated_at: string;
@@ -34,7 +32,7 @@ export interface DbGame {
   name: string;
   player1_id: string;
   player2_id: string | null;
-  status: GameStatus;
+  status: 'WAITING' | 'PLAYING' | 'FINISHED';
   board: any[][];
   current_turn: string | null;
   winner: string | null;

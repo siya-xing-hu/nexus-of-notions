@@ -10,7 +10,7 @@ function prismaToChannel(record: TelegramChannel): DbTelegramChannel {
     access_hash: record.accessHash,
     title: record.title,
     username: record.username,
-    type: record.type,
+    type: record.type as "CHANNEL" | "BOT" | "USER",
     permissions: record.permissions as any,
     created_at: record.createdAt.toISOString(),
     updated_at: record.updatedAt.toISOString(),
