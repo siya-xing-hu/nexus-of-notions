@@ -36,14 +36,15 @@ export class TelegramClient {
   private auth: TelegramAuth | null = null;
 
   constructor() {
-    const config = useRuntimeConfig();
+    const apiId = process.env.TELEGRAM_API_ID;
+    const apiHash = process.env.TELEGRAM_API_HASH;
 
-    if (!config.telegramApiId || !config.telegramApiHash) {
+    if (!apiId || !apiHash) {
       throw new Error("Missing required Telegram API environment variables");
     }
 
-    this.apiId = parseInt(config.telegramApiId as string);
-    this.apiHash = config.telegramApiHash as string;
+    this.apiId = parseInt(apiId as string);
+    this.apiHash = apiHash as string;
   }
 
   setAuth(auth: TelegramAuth) {
@@ -76,7 +77,8 @@ export class TelegramClient {
   // 统一封装调用，自动处理 DC 迁移和会话过期
   async call<T>(method: string, params: any): Promise<T> {
     if (!this.mtproto) {
-      throw new Error("MTProto 实例未初始化");
+      // 如果未初始化，则初始化
+      await this.auth?.tryRestoreSession();
     }
     try {
       return await this.mtproto.call(method, params);

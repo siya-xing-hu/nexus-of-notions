@@ -9,11 +9,18 @@
     <!-- 添加频道表单 -->
     <div class="p-4 border-b border-gray-200">
       <div class="flex gap-2">
-        <input v-model="newChannel" type="text" placeholder="输入频道用户名"
+        <input
+          v-model="newChannel"
+          type="text"
+          placeholder="输入频道用户名"
           class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
-          @keyup.enter="addChannel" />
-        <button @click="addChannel" :disabled="!newChannel.trim()"
-          class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center">
+          @keyup.enter="addChannel"
+        />
+        <button
+          @click="addChannel"
+          :disabled="!newChannel.trim()"
+          class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center"
+        >
           <Icon name="lucide:plus" class="w-4 h-4" />
         </button>
       </div>
@@ -21,52 +28,93 @@
 
     <!-- 频道列表 -->
     <div class="flex-1 overflow-y-auto">
-      <div v-for="channel in channels" :key="channel.username" @click="handleChannelClick(channel, $event)"
-        @mouseenter="handleChannelMouseEnter(channel)" @mouseleave="handleChannelMouseLeave"
-        @keydown="handleKeyDown($event, channel)" tabindex="0" role="button"
-        :aria-label="`选择 ${channel.title || channel.username}`" :class="[
+      <div
+        v-for="channel in channels"
+        :key="channel.username"
+        @click="handleChannelClick(channel, $event)"
+        @mouseenter="handleChannelMouseEnter(channel)"
+        @mouseleave="handleChannelMouseLeave"
+        @keydown="handleKeyDown($event, channel)"
+        tabindex="0"
+        role="button"
+        :aria-label="`选择 ${channel.title || channel.username}`"
+        :class="[
           'p-4 cursor-pointer border-l-4 transition-all duration-200 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset',
           selectedChannel?.username === channel.username
             ? 'border-blue-500 bg-blue-50'
             : 'border-transparent hover:bg-gray-50',
-        ]">
+        ]"
+      >
         <div class="flex items-center justify-between">
           <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-medium text-gray-900 truncate">
-              {{ channel.title || `@${channel.username}` }}
-            </h3>
             <div class="flex items-center gap-2">
+              <h3 class="text-sm font-medium text-gray-900 truncate">
+                {{ channel.title || `@${channel.username}` }}
+              </h3>
               <p class="text-xs text-gray-500 truncate">
                 @{{ channel.username }}
               </p>
+            </div>
+            <div class="flex items-center gap-2">
               <!-- 类型标识 -->
-              <span :class="[
-                'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium',
-                channel.type === 'CHANNEL' ? 'bg-blue-100 text-blue-800' :
-                  channel.type === 'BOT' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
-              ]" :title="channel.type === 'CHANNEL' ? '频道' : channel.type === 'BOT' ? '机器人' : '用户'">
-                <Icon :name="channel.type === 'CHANNEL' ? 'lucide:hash' :
-                  channel.type === 'BOT' ? 'lucide:bot' : 'lucide:user'" class="w-3 h-3 mr-0.5" />
-                {{ channel.type === 'CHANNEL' ? '频道' : channel.type === 'BOT' ? '机器人' : '用户' }}
+              <span
+                :class="[
+                  'inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium',
+                  channel.type === 'CHANNEL'
+                    ? 'bg-blue-100 text-blue-800'
+                    : channel.type === 'BOT'
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-gray-100 text-gray-800',
+                ]"
+                :title="
+                  channel.type === 'CHANNEL'
+                    ? '频道'
+                    : channel.type === 'BOT'
+                    ? '机器人'
+                    : '用户'
+                "
+              >
+                <Icon
+                  :name="
+                    channel.type === 'CHANNEL'
+                      ? 'lucide:hash'
+                      : channel.type === 'BOT'
+                      ? 'lucide:bot'
+                      : 'lucide:user'
+                  "
+                  class="w-3 h-3 mr-0.5"
+                />
+                {{
+                  channel.type === "CHANNEL"
+                    ? "频道"
+                    : channel.type === "BOT"
+                    ? "机器人"
+                    : "用户"
+                }}
               </span>
               <!-- 权限标识 -->
               <div v-if="channel.permissions" class="flex items-center gap-1">
-                <span v-if="channel.permissions?.isCreator"
+                <span
+                  v-if="channel.permissions?.isCreator"
                   class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800"
-                  title="频道创建者">
+                  title="频道创建者"
+                >
                   <Icon name="lucide:crown" class="w-3 h-3 mr-0.5" />
                   创建者
                 </span>
-                <span v-else-if="channel.permissions?.isAdmin"
+                <span
+                  v-else-if="channel.permissions?.isAdmin"
                   class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
-                  title="频道管理员">
+                  title="频道管理员"
+                >
                   <Icon name="lucide:shield" class="w-3 h-3 mr-0.5" />
                   管理员
                 </span>
-                <span v-if="!channel.permissions?.canSendMessages"
+                <span
+                  v-if="!channel.permissions?.canSendMessages"
                   class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
-                  title="只读模式">
+                  title="只读模式"
+                >
                   <Icon name="lucide:eye" class="w-3 h-3 mr-0.5" />
                   只读
                 </span>
@@ -76,25 +124,41 @@
           <!-- 频道操作组件 -->
           <div class="channel-item-actions">
             <!-- 加载指示器 -->
-            <div v-if="loadingChannel === channel.username" class="flex items-center justify-center w-8 h-8">
-              <Icon name="lucide:loader-2" class="w-4 h-4 text-blue-500 animate-spin" />
+            <div
+              v-if="loadingChannel === channel.username"
+              class="flex items-center justify-center w-8 h-8"
+            >
+              <Icon
+                name="lucide:loader-2"
+                class="w-4 h-4 text-blue-500 animate-spin"
+              />
             </div>
             <!-- 操作按钮 -->
-            <button v-else @click.stop="toggleActions(channel.username, $event)"
+            <button
+              v-else
+              @click.stop="toggleActions(channel.username, $event)"
               class="p-1 text-gray-400 hover:text-gray-600 transition-colors flex items-center justify-center w-8 h-8 rounded hover:bg-gray-100"
-              title="更多操作">
+              title="更多操作"
+            >
               <Icon name="lucide:more-horizontal" class="w-4 h-4" />
             </button>
 
             <!-- 下拉菜单 -->
-            <div v-if="showActions === channel.username"
-              class="fixed bg-white border border-gray-200 rounded-md shadow-lg" :style="getDropdownStyle()">
-              <button @click.stop="handleRefresh(channel)"
-                class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center">
+            <div
+              v-if="showActions === channel.username"
+              class="fixed bg-white border border-gray-200 rounded-md shadow-lg"
+              :style="getDropdownStyle()"
+            >
+              <button
+                @click.stop="handleRefresh(channel)"
+                class="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+              >
                 <Icon name="lucide:refresh-cw" class="w-4 h-4 flex-shrink-0" />
               </button>
-              <button @click.stop="handleRemove(channel.id)"
-                class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center">
+              <button
+                @click.stop="handleRemove(channel.id)"
+                class="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center"
+              >
                 <Icon name="lucide:trash-2" class="w-4 h-4 flex-shrink-0" />
               </button>
             </div>
@@ -104,7 +168,10 @@
 
       <!-- 空状态 -->
       <div v-if="channels.length === 0" class="p-8 text-center">
-        <Icon name="lucide:message-circle" class="mx-auto h-8 w-8 text-gray-400 mb-2" />
+        <Icon
+          name="lucide:message-circle"
+          class="mx-auto h-8 w-8 text-gray-400 mb-2"
+        />
         <p class="text-sm text-gray-500">暂无频道，请添加频道开始聊天</p>
       </div>
     </div>
@@ -162,9 +229,11 @@ const handleChannelClick = (channel: DbTelegramChannel, event: Event) => {
   const target = event.target as HTMLElement;
 
   // 如果点击的是操作按钮或其子元素，不触发频道选择
-  if (target.closest(".channel-actions") ||
+  if (
+    target.closest(".channel-actions") ||
     target.closest("button") ||
-    target.closest(".channel-item-actions")) {
+    target.closest(".channel-item-actions")
+  ) {
     return;
   }
 
@@ -183,7 +252,7 @@ const handleChannelMouseLeave = () => {
 
 // 处理键盘事件
 const handleKeyDown = (event: KeyboardEvent, channel: DbTelegramChannel) => {
-  if (event.key === 'Enter' || event.key === ' ') {
+  if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
     handleChannelSelected(channel);
   }
@@ -208,7 +277,7 @@ const toggleActions = (username: string, event?: Event) => {
     if (event) {
       const button = event.target as HTMLElement;
       const rect = button.getBoundingClientRect();
-      const container = button.closest('.channel-item-actions');
+      const container = button.closest(".channel-item-actions");
 
       if (container) {
         const containerRect = container.getBoundingClientRect();

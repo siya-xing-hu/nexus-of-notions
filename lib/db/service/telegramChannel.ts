@@ -23,7 +23,7 @@ export async function queryUserChannels(
 ): Promise<DbTelegramChannel[]> {
   const records = await prisma.telegramChannel.findMany({
     where: { userId },
-    orderBy: { createdAt: "desc" },
+    orderBy: { updatedAt: "desc" },
   });
 
   return records.map(prismaToChannel);

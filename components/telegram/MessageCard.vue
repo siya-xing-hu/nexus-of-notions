@@ -14,9 +14,6 @@
           来自: {{ formatFrom(message.from) }}
         </span>
       </div>
-      <div class="text-sm text-gray-500">
-        {{ formatDate(message.date) }}
-      </div>
     </div>
 
     <!-- 消息内容 -->
@@ -188,6 +185,8 @@ const toggleExpand = () => {
 
 // 格式化消息文本，支持 Markdown 样式和自动链接检测
 const formatMessageText = (text: string) => {
+  if (!text) return "";
+
   let formattedText = text;
 
   // 处理粗体文本 (**text**)
