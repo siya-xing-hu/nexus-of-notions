@@ -82,6 +82,25 @@ export const telegramApi = {
         },
       },
     }) as Promise<{ success: boolean }>,
+
+  // 搜索用户和频道
+  searchUsersAndChannels: (query: string) =>
+    request("/api/telegram", HttpMethod.POST, {
+      body: {
+        type: "searchUsersAndChannels",
+        data: {
+          query,
+        },
+      },
+    }) as Promise<Array<{
+      id: number;
+      access_hash: string;
+      title: string;
+      username: string;
+      type: "CHANNEL" | "BOT" | "USER";
+      first_name?: string;
+      last_name?: string;
+    }>>,
 };
 
 export type TelegramApi = typeof telegramApi;

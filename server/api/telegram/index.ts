@@ -50,6 +50,9 @@ async function handlePost(event: any): Promise<Resp<any>> {
       case "channelInfo":
         result = await handleGetChannelInfo(data.channelUsername);
         break;
+      case "searchUsersAndChannels":
+        result = await handleSearchUsersAndChannels(data.query);
+        break;
       default:
         const error = BusinessError.required("无效的操作类型").toErrorObj();
         return response(event, null, error, error.errorCode);
@@ -159,4 +162,23 @@ async function handleGetMessages(
     limit,
     offsetId,
   );
+}
+
+async function handleSearchUsersAndChannels(
+  query: string,
+): Promise<Array<{
+  id: number;
+  access_hash: string;
+  title: string;
+  username: string;
+  type: "CHANNEL" | "BOT" | "USER";
+  first_name?: string;
+  last_name?: string;
+}>> {
+  // 参数验证
+  if (!query) {
+    throw BusinessError.required("搜索查询是必需的");
+  }
+
+  return await Telegram.getService().searchUsersAndChannels(query);
 }

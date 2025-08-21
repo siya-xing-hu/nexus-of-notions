@@ -8,28 +8,88 @@
 
     <!-- 添加频道表单 -->
     <div class="p-4 border-b border-gray-200">
-      <div class="flex gap-2">
+      <div class="flex gap-2 relative">
         <input
           v-model="newChannel"
           type="text"
-          placeholder="输入频道用户名"
-          class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
-          @keyup.enter="addChannel"
+          placeholder="输入 @用户名 直接添加，或输入关键词搜索"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs pr-20"
+          @keyup.enter="handleAddOrSearch"
+          @focus="showSearchResults = true"
         />
         <button
-          @click="addChannel"
+          @click="handleAddOrSearch"
           :disabled="!newChannel.trim()"
           class="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center justify-center"
         >
-          <Icon name="lucide:plus" class="w-4 h-4" />
+          <Icon
+            :name="
+              newChannel.trim().startsWith('@')
+                ? 'lucide:plus'
+                : 'lucide:search'
+            "
+            class="w-3 h-3"
+          />
         </button>
+      </div>
+
+      <!-- 搜索结果下拉框 -->
+      <div
+        v-if="showSearchResults && searchResults.length > 0"
+        class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto left-0"
+      >
+        <div
+          v-for="result in searchResults"
+          :key="`${result.type}-${result.username}`"
+          @click="selectSearchResult(result.username)"
+          class="px-3 py-2 hover:bg-gray-50 cursor-pointer border-b-2 border-gray-100 last:border-b-0"
+        >
+          <div class="flex items-center gap-2 w-full">
+            <Icon
+              :name="
+                result.type === 'CHANNEL'
+                  ? 'lucide:hash'
+                  : result.type === 'BOT'
+                  ? 'lucide:bot'
+                  : 'lucide:user'
+              "
+              class="w-4 h-4 text-gray-500 flex-shrink-0"
+            />
+            <div class="flex-1 min-w-0 overflow-hidden">
+              <div class="text-sm font-medium text-gray-900 truncate">
+                {{ result.title }}
+              </div>
+              <div class="text-xs text-gray-500 truncate">
+                @{{ result.username }}
+                <span
+                  :class="[
+                    'ml-2 px-1.5 py-0.5 rounded text-xs flex-shrink-0',
+                    result.type === 'CHANNEL'
+                      ? 'bg-blue-100 text-blue-800'
+                      : result.type === 'BOT'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-gray-100 text-gray-800',
+                  ]"
+                >
+                  {{
+                    result.type === "CHANNEL"
+                      ? "频道"
+                      : result.type === "BOT"
+                      ? "机器人"
+                      : "用户"
+                  }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- 频道列表 -->
     <div class="flex-1 overflow-y-auto">
       <div
-        v-for="channel in channels"
+        v-for="channel in props.channels"
         :key="channel.username"
         @click="handleChannelClick(channel, $event)"
         @mouseenter="handleChannelMouseEnter(channel)"
@@ -40,7 +100,7 @@
         :aria-label="`选择 ${channel.title || channel.username}`"
         :class="[
           'p-4 cursor-pointer border-l-4 transition-all duration-200 relative overflow-hidden group focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset',
-          selectedChannel?.username === channel.username
+          props.selectedChannel?.username === channel.username
             ? 'border-blue-500 bg-blue-50'
             : 'border-transparent hover:bg-gray-50',
         ]"
@@ -51,11 +111,11 @@
               <h3 class="text-sm font-medium text-gray-900 truncate">
                 {{ channel.title || `@${channel.username}` }}
               </h3>
+            </div>
+            <div class="flex items-center gap-2">
               <p class="text-xs text-gray-500 truncate">
                 @{{ channel.username }}
               </p>
-            </div>
-            <div class="flex items-center gap-2">
               <!-- 类型标识 -->
               <span
                 :class="[
@@ -116,7 +176,6 @@
                   title="只读模式"
                 >
                   <Icon name="lucide:eye" class="w-3 h-3 mr-0.5" />
-                  只读
                 </span>
               </div>
             </div>
@@ -167,7 +226,7 @@
       </div>
 
       <!-- 空状态 -->
-      <div v-if="channels.length === 0" class="p-8 text-center">
+      <div v-if="props.channels.length === 0" class="p-8 text-center">
         <Icon
           name="lucide:message-circle"
           class="mx-auto h-8 w-8 text-gray-400 mb-2"
@@ -181,6 +240,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from "vue";
 import { DbTelegramChannel } from "@/lib/db/types";
+import { api } from "@/lib/api";
 
 interface Props {
   channels: DbTelegramChannel[];
@@ -218,6 +278,19 @@ const showActions = ref<string | null>(null);
 const dropdownPosition = ref<{ x: number; y: number } | null>(null);
 const hoveredChannel = ref<string | null>(null);
 const loadingChannel = ref<string | null>(null);
+const showSearchResults = ref(false);
+const searchResults = ref<
+  Array<{
+    id: number;
+    access_hash: string;
+    title: string;
+    username: string;
+    type: "CHANNEL" | "BOT" | "USER";
+    first_name?: string;
+    last_name?: string;
+  }>
+>([]);
+const searchTimeout = ref<NodeJS.Timeout | null>(null);
 
 // 处理频道选择
 const handleChannelSelected = (channel: DbTelegramChannel) => {
@@ -258,13 +331,65 @@ const handleKeyDown = (event: KeyboardEvent, channel: DbTelegramChannel) => {
   }
 };
 
-// 添加频道
-const addChannel = () => {
-  const username = newChannel.value.trim().replace("@", "");
-  if (!username) return;
+// 处理输入变化
+const handleInputChange = () => {
+  const query = newChannel.value.trim();
 
+  // 清除之前的超时
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value);
+  }
+
+  // 如果输入以 @ 开头，不进行搜索
+  if (query.startsWith("@")) {
+    showSearchResults.value = false;
+    return;
+  }
+
+  // 如果查询为空，隐藏搜索结果
+  if (!query) {
+    showSearchResults.value = false;
+    searchResults.value = [];
+    return;
+  }
+
+  // 延迟搜索，避免频繁请求
+  searchTimeout.value = setTimeout(async () => {
+    try {
+      const results = await api.telegram.searchUsersAndChannels(query);
+      searchResults.value = results;
+      showSearchResults.value = true;
+    } catch (error) {
+      console.error("搜索失败:", error);
+      searchResults.value = [];
+    }
+  }, 300);
+};
+
+// 处理添加或搜索
+const handleAddOrSearch = () => {
+  const query = newChannel.value.trim();
+  if (!query) return;
+
+  // 如果以 @ 开头，直接添加
+  if (query.startsWith("@")) {
+    const username = query.replace("@", "");
+    emit("channelAdded", username);
+    newChannel.value = "";
+    showSearchResults.value = false;
+    return;
+  }
+
+  // 否则触发搜索
+  handleInputChange();
+};
+
+// 选择搜索结果
+const selectSearchResult = (username: string) => {
   emit("channelAdded", username);
   newChannel.value = "";
+  showSearchResults.value = false;
+  searchResults.value = [];
 };
 
 // 切换操作菜单显示状态
@@ -326,12 +451,15 @@ const handleRemove = (id: string) => {
   emit("channelRemoved", id);
 };
 
-// 点击外部关闭下拉菜单
+// 点击外部关闭下拉菜单和搜索结果
 const handleClickOutside = (event: Event) => {
   const target = event.target as HTMLElement;
   if (!target.closest(".channel-item-actions")) {
     showActions.value = null;
     dropdownPosition.value = null;
+  }
+  if (!target.closest(".p-4")) {
+    showSearchResults.value = false;
   }
 };
 
@@ -342,6 +470,9 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
+  if (searchTimeout.value) {
+    clearTimeout(searchTimeout.value);
+  }
 });
 </script>
 

@@ -270,6 +270,78 @@ export class TelegramService {
     }
   }
 
+  // 搜索用户或频道
+  async searchUsersAndChannels(query: string): Promise<Array<{
+    id: number;
+    access_hash: string;
+    title: string;
+    username: string;
+    type: "CHANNEL" | "BOT" | "USER";
+    first_name?: string;
+    last_name?: string;
+  }>> {
+    try {
+      const cleanQuery = query.trim();
+      if (!cleanQuery) {
+        return [];
+      }
+
+      // 使用 contacts.search 进行模糊搜索
+      const searchResult = await this.client.call<any>("contacts.search", {
+        q: cleanQuery,
+        limit: 20, // 限制结果数量
+      });
+
+      const results: Array<{
+        id: number;
+        access_hash: string;
+        title: string;
+        username: string;
+        type: "CHANNEL" | "BOT" | "USER";
+        first_name?: string;
+        last_name?: string;
+      }> = [];
+
+      // 处理用户结果
+      if (searchResult.users) {
+        for (const user of searchResult.users) {
+          if (user.username) {
+            const type = user.bot ? "BOT" : "USER";
+            results.push({
+              id: user.id,
+              access_hash: user.access_hash,
+              title: user.first_name || user.username,
+              username: user.username,
+              type,
+              first_name: user.first_name,
+              last_name: user.last_name,
+            });
+          }
+        }
+      }
+
+      // 处理频道结果
+      if (searchResult.chats) {
+        for (const chat of searchResult.chats) {
+          if (chat.username && chat._ === "channel") {
+            results.push({
+              id: chat.id,
+              access_hash: chat.access_hash,
+              title: chat.title || chat.username,
+              username: chat.username,
+              type: "CHANNEL",
+            });
+          }
+        }
+      }
+
+      return results;
+    } catch (error: any) {
+      console.error("搜索用户和频道失败:", error);
+      throw new Error(`搜索失败: ${error.error_message || error.message}`);
+    }
+  }
+
   // 发送消息到频道、机器人或个人用户
   async sendMessage(channelUsername: string, message: string): Promise<number> {
     try {
