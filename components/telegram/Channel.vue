@@ -12,8 +12,8 @@
         <input
           v-model="newChannel"
           type="text"
-          placeholder="输入 @用户名 直接添加，或输入关键词搜索"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs pr-20"
+          placeholder="关键词搜索(@用户名)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs pr-5"
           @keyup.enter="handleAddOrSearch"
           @focus="showSearchResults = true"
         />
@@ -36,7 +36,7 @@
       <!-- 搜索结果下拉框 -->
       <div
         v-if="showSearchResults && searchResults.length > 0"
-        class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto left-0"
+        class="absolute z-50 mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto left-0 max-w-full"
       >
         <div
           v-for="result in searchResults"
