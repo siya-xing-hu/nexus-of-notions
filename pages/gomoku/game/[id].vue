@@ -394,7 +394,7 @@ const pollGameState = async () => {
     const gameData = await api.game.queryById(route.params.id as string);
     if (gameData) {
       // 检查是否有更新
-      const currentTime = new Date(gameData.updatedAt).getTime();
+      const currentTime = new Date(gameData.updated_at).getTime();
       if (currentTime > lastUpdateTime.value) {
         lastUpdateTime.value = currentTime;
         game.value = gameData;
@@ -589,7 +589,7 @@ onMounted(async () => {
     if (gameData) {
       game.value = gameData;
       updateBoard(gameData.board);
-      lastUpdateTime.value = new Date(gameData.updatedAt).getTime();
+      lastUpdateTime.value = new Date(gameData.updated_at).getTime();
 
       // 游戏未结束，开始轮询
       if (gameData.status !== "FINISHED") {

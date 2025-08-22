@@ -7,8 +7,8 @@ import { BusinessError } from "@/lib/exception";
 
 export default defineEventHandler(async (event) => {
   switch (event.method) {
-    case HttpMethod.POST:
-      return handleRegister(event);
+    // case HttpMethod.POST:
+      // return handleRegister(event);
     default:
       const error = BusinessError.methodNotAllowed().toErrorObj();
       return response(event, null, error, error.errorCode);

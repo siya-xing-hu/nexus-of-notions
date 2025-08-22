@@ -58,7 +58,7 @@
         </form>
 
         <!-- 切换到注册页面 -->
-        <div class="mt-6 text-center">
+        <!-- <div class="mt-6 text-center">
           <p class="text-gray-600 text-sm mb-2">还没有账号？</p>
           <NuxtLink
             :to="`/register?redirect=${$route.query.redirect || '/'}`"
@@ -66,7 +66,7 @@
           >
             立即注册
           </NuxtLink>
-        </div>
+        </div> -->
 
         <!-- 错误消息 -->
         <div
