@@ -4,6 +4,7 @@ import { userApi } from "./client/user";
 import { weightApi } from "./client/weight";
 import { gameApi } from "./client/game";
 import { telegramApi, telegramChannelApi } from "./client/telegram";
+import { searchApi } from "./client/search";
 
 export const api = {
   user: userApi,
@@ -11,6 +12,7 @@ export const api = {
   game: gameApi,
   telegram: telegramApi,
   telegramChannel: telegramChannelApi,
+  search: searchApi,
 };
 
 export type ApiClient = typeof api;

@@ -60,7 +60,7 @@ export class GameHandler {
     }
 
     // 检查是否是自己的游戏
-    if (game.player1Id === userId) {
+    if (game.player1_id === userId) {
       throw BusinessError.required("不能加入自己创建的游戏");
     }
 
@@ -108,12 +108,12 @@ export class GameHandler {
     }
 
     // 检查是否是当前玩家的回合
-    if (game.currentTurn !== userId) {
+    if (game.current_turn !== userId) {
       throw BusinessError.required("不是你的回合");
     }
 
     // 检查是否是游戏参与者
-    if (game.player1Id !== userId && game.player2Id !== userId) {
+    if (game.player1_id !== userId && game.player2_id !== userId) {
       throw BusinessError.required("你不是游戏参与者");
     }
 
@@ -130,7 +130,7 @@ export class GameHandler {
     }
 
     // 确定玩家棋子类型
-    const playerPiece = game.player1Id === userId ? "black" : "white";
+    const playerPiece = game.player1_id === userId ? "black" : "white";
 
     // 更新棋盘
     board[row][col] = playerPiece;
@@ -139,9 +139,9 @@ export class GameHandler {
     const isWin = this.checkWin(board, row, col, playerPiece);
 
     // 确定下一个玩家
-    const nextPlayer = game.currentTurn === game.player1Id
-      ? game.player2Id
-      : game.player1Id;
+    const nextPlayer = game.current_turn === game.player1_id
+      ? game.player2_id
+      : game.player1_id;
 
     // 更新游戏状态
     const lastMove = { row, col, player: playerPiece };

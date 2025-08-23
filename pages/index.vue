@@ -101,7 +101,31 @@
           </div>
         </div>
 
-        <!-- Telegram Search Card -->
+        <!-- Search Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <div class="p-6 text-center">
+            <div
+              class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+            >
+              <SearchIcon class="w-6 h-6 text-purple-600" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">影视搜索</h3>
+            <p class="text-purple-600 font-medium mb-4">搜索影视</p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+              使用影视搜索，可以方便进行的搜索影视等操作。
+            </p>
+            <button
+              @click="handleSearchClick"
+              class="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+            >
+              开始搜索
+            </button>
+          </div>
+        </div>
+
+        <!-- Telegram Chat Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
         >
@@ -111,16 +135,18 @@
             >
               <MessageCircleIcon class="w-6 h-6 text-purple-600" />
             </div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">Telegram 搜索</h3>
-            <p class="text-purple-600 font-medium mb-4">频道内容搜索</p>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">
+              Telegram 客户端
+            </h3>
+            <p class="text-purple-600 font-medium mb-4">聊天客户端</p>
             <p class="text-gray-600 mb-6 leading-relaxed">
-              通过聊天方式搜索 Telegram 频道内容，获取机器人的智能回复。
+              使用 Telegram 客户端，可以方便进行的聊天、搜索频道等操作。
             </p>
             <button
               @click="handleTelegramClick"
               class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
-              开始搜索
+              进入客户端
             </button>
           </div>
         </div>
@@ -219,6 +245,7 @@ import {
   Star as StarIcon,
   Share as ShareIcon,
   Gamepad2 as Gamepad2Icon,
+  Search as SearchIcon,
   MessageCircle as MessageCircleIcon,
   Calendar,
   BookOpen,
@@ -302,34 +329,32 @@ const handleLogout = () => {
 
 // 处理体重记录系统点击
 const handleWeightTrackerClick = () => {
-  if (userInfo.value) {
-    // 用户已登录，跳转到体重记录页面
-    navigateTo("/weight-tracker");
-  } else {
-    // 用户未登录，跳转到登录页面，并指定登录后跳转到体重记录页面
-    navigateTo("/login?redirect=/weight-tracker");
-  }
+  handleClick("/weight-tracker");
 };
 
 // 处理五子棋游戏点击
 const handleGomokuClick = () => {
-  if (userInfo.value) {
-    // 用户已登录，跳转到五子棋游戏页面
-    navigateTo("/gomoku");
-  } else {
-    // 用户未登录，跳转到登录页面，并指定登录后跳转到五子棋游戏页面
-    navigateTo("/login?redirect=/gomoku");
-  }
+  handleClick("/gomoku");
 };
 
-// 处理 Telegram 搜索点击
+// 处理影视搜索点击
+const handleSearchClick = () => {
+  handleClick("/search");
+};
+
+// 处理 Telegram 客户端点击
 const handleTelegramClick = () => {
+  handleClick("/coming-soon");
+};
+
+// 处理点击
+const handleClick = (path) => {
   if (userInfo.value) {
-    // 用户已登录，跳转到 Telegram 搜索页面
-    navigateTo("/telegram");
+    // 用户已登录，跳转到指定页面
+    navigateTo(path);
   } else {
-    // 用户未登录，跳转到登录页面，并指定登录后跳转到 Telegram 搜索页面
-    navigateTo("/login?redirect=/telegram");
+    // 用户未登录，跳转到登录页面，并指定登录后跳转到指定页面
+    navigateTo(`/login?redirect=${path}`);
   }
 };
 

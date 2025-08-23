@@ -370,7 +370,7 @@ export class TelegramService {
         random_id: Math.floor(Math.random() * 1000000000),
       });
 
-      return result.id;
+      return result.updates[0].id;
     } catch (error) {
       console.error("发送消息失败:", error);
       throw error;
@@ -413,6 +413,8 @@ export class TelegramService {
         min_id: 0,
         hash: 0,
       });
+
+      console.log("result", JSON.stringify(result));
 
       // 创建消息ID到消息内容的映射
       const messageMap = new Map<number, any>();
