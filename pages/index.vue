@@ -125,6 +125,30 @@
           </div>
         </div>
 
+        <!-- Crypto Tools Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <div class="p-6 text-center">
+            <div
+              class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+            >
+              <KeyRoundIcon class="w-6 h-6 text-yellow-600" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">加密工具箱</h3>
+            <p class="text-yellow-600 font-medium mb-4">安全计算</p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+              提供 RSA、国密等算法的密钥生成、加密和解密功能。
+            </p>
+            <button
+              @click="handleCryptoClick"
+              class="block w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+            >
+              打开工具
+            </button>
+          </div>
+        </div>
+
         <!-- Telegram Chat Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
@@ -247,6 +271,7 @@ import {
   Gamepad2 as Gamepad2Icon,
   Search as SearchIcon,
   MessageCircle as MessageCircleIcon,
+  KeyRound as KeyRoundIcon,
   Calendar,
   BookOpen,
   Target,
@@ -345,6 +370,11 @@ const handleSearchClick = () => {
 // 处理 Telegram 客户端点击
 const handleTelegramClick = () => {
   handleClick("/coming-soon");
+};
+
+// 处理加密工具箱点击
+const handleCryptoClick = () => {
+  handleClick("/crypto");
 };
 
 // 处理点击

@@ -81,7 +81,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { api, showGlobalError } from "@/lib/api";
-import ResultCard from "@/components/search/ResultCard.vue";
 import { SearchResult } from "@/lib/handler/SearchHandler";
 
 const searchQuery = ref("");

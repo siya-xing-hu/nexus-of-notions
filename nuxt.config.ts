@@ -10,6 +10,8 @@ export default defineNuxtConfig({
       "~/components/exception",
       "~/components/gomoku",
       "~/components/telegram",
+      "~/components/search",
+      "~/components/crypto",
     ],
   },
   alias: {

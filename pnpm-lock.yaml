@@ -26,6 +26,9 @@ importers:
       chart.js:
         specifier: ^4.4.0
         version: 4.5.0
+      jsencrypt:
+        specifier: ^3.5.4
+        version: 3.5.4
       lucide-vue-next:
         specifier: ^0.537.0
         version: 0.537.0(vue@3.5.18(typescript@5.9.2))
@@ -38,6 +41,9 @@ importers:
       sharp:
         specifier: ^0.34.3
         version: 0.34.3
+      sm-crypto-v2:
+        specifier: ^1.13.0
+        version: 1.13.0
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -775,6 +781,18 @@ packages:
     resolution: {integrity: sha512-zAr+8Tg80y/sUbhdUkZsq4Uy1IMzkSB6H/sKRMrDQ2NJx4uPgf5X5jMdg9g2FljNcxzpfJwc1Gg4OXQrjD0Z4A==}
     engines: {node: '>=18.14.0'}
     hasBin: true
+
+  '@noble/ciphers@1.3.0':
+    resolution: {integrity: sha512-2I0gnIVPtfnMw9ee9h1dJG7tp81+8Ob3OJb3Mv37rx5L40/b0i7djjCVvGOVqc9AEIQyvyu1i6ypKdFw8R8gQw==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/curves@1.9.7':
+    resolution: {integrity: sha512-gbKGcRUYIjA3/zCCNaWDciTMFI0dCkvou3TL8Zmy5Nc7sJ47a0jtOeZoTaMxkuqRo9cRhjOdZJXegxYE5FN/xw==}
+    engines: {node: ^14.21.3 || >=16}
+
+  '@noble/hashes@1.8.0':
+    resolution: {integrity: sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -2864,6 +2882,9 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
+  jsencrypt@3.5.4:
+    resolution: {integrity: sha512-kNjfYEMNASxrDGsmcSQh/rUTmcoRfSUkxnAz+MMywM8jtGu+fFEZ3nJjHM58zscVnwR0fYmG9sGkTDjqUdpiwA==}
+
   jsesc@3.1.0:
     resolution: {integrity: sha512-/sM3dO2FOzXjKQhJuo0Q173wf2KOo8t4I8vHy6lF9poUp7bKT0/NHE8fPX23PwfhnykfqnC2xRxOnVw5XuGIaA==}
     engines: {node: '>=6'}
@@ -3993,6 +4014,9 @@ packages:
   slash@5.1.0:
     resolution: {integrity: sha512-ZA6oR3T/pEyuqwMgAKT0/hAv8oAXckzbkmR0UkUosQ+Mc4RxGoJkRmwHgHufaenlyAgE1Mxgpdcrf75y6XcnDg==}
     engines: {node: '>=14.16'}
+
+  sm-crypto-v2@1.13.0:
+    resolution: {integrity: sha512-w4q0Eiq5WqNTbmluCNFIa47W6NK8Qhk86BkbCdNeTd+eLeHCxbcctBxsm/xOJ3TKmdKM/wd6QoBrNpzqxwLcpQ==}
 
   smob@1.5.0:
     resolution: {integrity: sha512-g6T+p7QO8npa+/hNx9ohv1E5pVCmWrVCUzUXJyLdMmftX6ER0oiWY/w9knEonLpnOp6b6FenKnMfR8gqwWdwig==}
@@ -5347,6 +5371,14 @@ snapshots:
       - encoding
       - rollup
       - supports-color
+
+  '@noble/ciphers@1.3.0': {}
+
+  '@noble/curves@1.9.7':
+    dependencies:
+      '@noble/hashes': 1.8.0
+
+  '@noble/hashes@1.8.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -7534,6 +7566,8 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
+  jsencrypt@3.5.4: {}
+
   jsesc@3.1.0: {}
 
   json5@2.2.3: {}
@@ -8937,6 +8971,11 @@ snapshots:
   sisteransi@1.0.5: {}
 
   slash@5.1.0: {}
+
+  sm-crypto-v2@1.13.0:
+    dependencies:
+      '@noble/ciphers': 1.3.0
+      '@noble/curves': 1.9.7
 
   smob@1.5.0: {}
 
