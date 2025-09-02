@@ -25,7 +25,7 @@ rm -rf .nuxt
 
 # 安装依赖
 echo "📦 安装项目依赖..."
-npm install
+pnpm install
 
 # 检查环境变量文件
 echo "🔧 检查环境变量配置..."

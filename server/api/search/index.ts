@@ -1,17 +1,24 @@
-import { defineEventHandler, readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
+import { readBody } from "h3";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
 import { BusinessError, SystemError } from "@/lib/exception";
 import { SearchHandler, SearchResult } from "@/lib/handler/SearchHandler";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handlePost(event);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
 
 async function handlePost(event: any): Promise<Resp<SearchResult>> {
   const body: ReqObj = await readBody(event);

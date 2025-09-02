@@ -23,10 +23,25 @@ export class BusinessError extends Error {
   }
 
   /**
+   * 无效请求错误
+   */
+  static invalidRequest(message: string): BusinessError {
+    return new BusinessError(message, 400);
+  }
+
+  /**
    * 参数错误
    */
   static required(message: string): BusinessError {
     return new BusinessError(message, 400);
+  }
+
+
+  /**
+   * 未授权错误
+   */
+  static unauthorized(message: string): BusinessError {
+    return new BusinessError(message, 401);
   }
 
   /**
@@ -34,13 +49,6 @@ export class BusinessError extends Error {
    */
   static notFound(message: string): BusinessError {
     return new BusinessError(message, 404);
-  }
-
-  /**
-   * 无效请求错误
-   */
-  static invalidRequest(message: string): BusinessError {
-    return new BusinessError(message, 400);
   }
 
   /**

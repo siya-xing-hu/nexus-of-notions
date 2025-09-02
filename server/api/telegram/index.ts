@@ -1,19 +1,26 @@
-import { defineEventHandler, readBody } from "h3";
+import { readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
 import { HttpMethod, ReqObj, Resp, response } from "@/lib/api";
 import { BusinessError } from "@/lib/exception/BusinessError";
 import { SystemError } from "@/lib/exception/SystemError";
 import { Telegram, TelegramMessage } from "@/lib/telegram";
 import { DbTelegramChannel } from "@/lib/db/types";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handlePost(event);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
 
 async function handlePost(event: any): Promise<Resp<any>> {
   const body: ReqObj = await readBody(event);
@@ -166,15 +173,17 @@ async function handleGetMessages(
 
 async function handleSearchUsersAndChannels(
   query: string,
-): Promise<Array<{
-  id: number;
-  access_hash: string;
-  title: string;
-  username: string;
-  type: "CHANNEL" | "BOT" | "USER";
-  first_name?: string;
-  last_name?: string;
-}>> {
+): Promise<
+  Array<{
+    id: number;
+    access_hash: string;
+    title: string;
+    username: string;
+    type: "CHANNEL" | "BOT" | "USER";
+    first_name?: string;
+    last_name?: string;
+  }>
+> {
   // 参数验证
   if (!query) {
     throw BusinessError.required("搜索查询是必需的");

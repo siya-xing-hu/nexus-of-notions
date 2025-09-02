@@ -131,10 +131,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import { api } from "@/lib/api";
-import { useUser } from "@/composables/useUser";
+import { onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
@@ -142,9 +141,6 @@ const router = useRouter();
 const myGames = ref<any[]>([]);
 const availableGames = ref<any[]>([]);
 const isCreating = ref(false);
-
-// 用户状态管理
-const user = useUser().user;
 
 // 格式化日期
 const formatDate = (dateString: string) => {
@@ -161,7 +157,7 @@ const formatDate = (dateString: string) => {
 const createGame = async () => {
   try {
     isCreating.value = true;
-    const game = await api.game.create(user!.id, 15);
+    const game = await api.game.create(15);
 
     if (game) {
       // 跳转到游戏页面
@@ -177,7 +173,7 @@ const createGame = async () => {
 // 加入游戏
 const joinGame = async (gameId: string) => {
   try {
-    const game = await api.game.join(gameId, user!.id);
+    const game = await api.game.join(gameId);
 
     if (game) {
       // 跳转到游戏页面
@@ -202,7 +198,7 @@ const startAIGame = () => {
 const loadGames = async () => {
   try {
     // 加载我正在进行中的游戏
-    const myGamesData = await api.game.queryUserGames(user!.id, "PLAYING");
+    const myGamesData = await api.game.queryUserGames("PLAYING");
     if (myGamesData) {
       myGames.value = myGamesData;
     }

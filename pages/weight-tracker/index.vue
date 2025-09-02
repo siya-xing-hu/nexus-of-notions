@@ -14,9 +14,6 @@
         <div>
           <h1 class="text-3xl font-bold text-blue-600 mb-1">体重记录系统</h1>
           <p class="text-gray-600 text-sm">数据健康优化</p>
-          <p v-if="currentUser" class="text-sm text-gray-500 mt-1">
-            欢迎，{{ currentUser.name }} ({{ currentUser.email }})
-          </p>
         </div>
       </div>
       <div class="flex flex-col items-end gap-2">
@@ -40,11 +37,7 @@
         <div class="xl:col-span-1 order-2 xl:order-1">
           <div class="sticky top-4">
             <div class="bg-white rounded-lg shadow-lg p-6">
-              <AddWeightForm
-                v-if="currentUser"
-                :user-info="currentUser"
-                @record-added="refreshData"
-              />
+              <AddWeightForm @record-added="refreshData" />
             </div>
           </div>
         </div>
@@ -52,13 +45,13 @@
         <!-- Right: Data Display -->
         <div class="xl:col-span-2 order-1 xl:order-2 space-y-6">
           <!-- Weight Chart -->
-          <div v-if="currentUser" class="bg-white rounded-lg shadow-lg p-6">
-            <WeightChart :user-id="currentUser.id" />
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <WeightChart :user-id="data.user.id" />
           </div>
 
           <!-- Weight Table -->
-          <div v-if="currentUser" class="bg-white rounded-lg shadow-lg p-6">
-            <WeightTable :user-id="currentUser.id" />
+          <div class="bg-white rounded-lg shadow-lg p-6">
+            <WeightTable :user-id="data.user.id" />
           </div>
         </div>
       </div>
@@ -71,7 +64,7 @@ import { ref, computed, onMounted } from "vue";
 import { ArrowLeft, Users } from "lucide-vue-next";
 
 // Reactive data
-const currentUser = ref(null);
+const { data } = useAuth();
 
 // Computed properties
 const currentDate = computed(() => {
@@ -98,18 +91,4 @@ const refreshData = () => {
   // 触发子组件刷新数据
   window.location.reload();
 };
-
-// Lifecycle
-onMounted(() => {
-  // 检查用户登录状态
-  const userInfoStr = localStorage.getItem("user-info");
-
-  if (userInfoStr) {
-    currentUser.value = JSON.parse(userInfoStr);
-    console.log("体重记录系统页面已加载");
-  } else {
-    // 用户未登录，跳转到首页
-    navigateTo("/");
-  }
-});
 </script>

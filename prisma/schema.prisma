@@ -14,11 +14,15 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                String   @id @default(uuid())
+  name              String?
+  email             String?  @unique
+  avatar            String?
+  password          String?
+  provider          String?
+  providerAccountId String?
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   weightRecords    WeightRecord[]
   gamesAsPlayer1   Game[]            @relation("Player1")

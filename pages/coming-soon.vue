@@ -217,6 +217,11 @@ onUnmounted(() => {
   if (progressTimer) clearInterval(progressTimer)
   if (countdownTimer) clearInterval(countdownTimer)
 })
+
+definePageMeta({
+  layout: false,
+  auth: false,
+});
 </script>
 
 <style scoped>

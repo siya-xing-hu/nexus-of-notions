@@ -7,9 +7,9 @@ export const weightApi = {
     request("/api/weight", HttpMethod.GET, { query: { userId } }) as Promise<
       DbWeightRecord[]
     >,
-  create: (weight: number, date: string, userId: string) =>
+  create: (weight: number, date: string) =>
     request("/api/weight", HttpMethod.POST, {
-      body: { data: { weight, date, userId } },
+      body: { data: { weight, date } },
     }),
 };
 

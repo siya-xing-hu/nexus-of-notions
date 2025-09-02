@@ -1,5 +1,4 @@
 export {
-  createOrGetUser,
   queryAllUsers,
   queryUserByEmail,
   queryUserById,

@@ -3,28 +3,6 @@
     <h2 class="text-xl font-bold text-gray-800 mb-6">添加体重记录</h2>
 
     <form @submit.prevent="submitForm" class="space-y-6">
-      <div
-        v-if="!userInfo"
-        class="text-sm text-gray-600 mb-4 p-3 bg-blue-50 rounded-lg"
-      >
-        <p>
-          请先
-          <NuxtLink
-            to="/login"
-            class="text-blue-600 hover:text-blue-700 underline"
-            >登录</NuxtLink
-          >
-          以开始记录体重
-        </p>
-      </div>
-
-      <div
-        v-if="userInfo"
-        class="text-sm text-gray-600 mb-4 p-3 bg-green-50 rounded-lg"
-      >
-        <p>当前用户：{{ userInfo.name }} ({{ userInfo.email }})</p>
-      </div>
-
       <div>
         <label
           for="weight"
@@ -135,13 +113,7 @@
 
 <script setup lang="ts">
 import api from "@/lib/api";
-import { DbUser } from "@/lib/db/types";
 import { ref } from "vue";
-
-// Props
-const props = defineProps<{
-  userInfo: DbUser;
-}>();
 
 const weight = ref("");
 const date = ref(new Date().toISOString().split("T")[0]);
@@ -155,7 +127,7 @@ const emit = defineEmits<{
 }>();
 
 const submitForm = async () => {
-  if (!weight.value || !date.value || !props.userInfo) {
+  if (!weight.value || !date.value) {
     errorMessage.value = "请填写所有必填字段";
     return;
   }
@@ -170,7 +142,7 @@ const submitForm = async () => {
   errorMessage.value = "";
   successMessage.value = "";
 
-  await api.weight.create(weightValue, date.value, props.userInfo.id);
+  await api.weight.create(weightValue, date.value);
 
   successMessage.value = "体重记录添加成功！";
   resetForm();

@@ -1,4 +1,5 @@
-import { defineEventHandler, getQuery, readBody } from "h3";
+import { getQuery, readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
 import { HttpMethod, ReqObj, Resp, response } from "@/lib/api";
 import { BusinessError } from "@/lib/exception/BusinessError";
 import { SystemError } from "@/lib/exception/SystemError";
@@ -7,29 +8,31 @@ import {
   deleteChannel,
   queryUserChannels,
 } from "@/lib/db/service/telegramChannel";
-import { queryUserById } from "@/lib/db/service/user";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.GET:
-      return handleGet(event);
-    case HttpMethod.POST:
-      return handlePost(event);
-    case HttpMethod.DELETE:
-      return handleDelete(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    switch (event.method) {
+      case HttpMethod.GET:
+        return handleGet(event);
+      case HttpMethod.POST:
+        return handlePost(event);
+      case HttpMethod.DELETE:
+        return handleDelete(event);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
 
 // 获取用户的频道列表
 async function handleGet(event: any): Promise<Resp<any>> {
-  const query = getQuery(event);
-  const { userId } = query;
-
   // 获取用户的频道列表
-  const channels = await queryUserChannels(userId as string);
+  const channels = await queryUserChannels(event.context.user.id);
 
   return response(event, { data: channels }, null);
 }
@@ -38,29 +41,19 @@ async function handleGet(event: any): Promise<Resp<any>> {
 async function handlePost(event: any): Promise<Resp<any>> {
   const body: ReqObj = await readBody(event);
   const { data } = body;
-  const { userId, channelInfo } = data;
+  const { channelInfo } = data;
 
   try {
-    // 参数验证
-    if (!userId) {
-      const error = BusinessError.required("用户ID是必需的").toErrorObj();
-      return response(event, null, error, error.errorCode);
-    }
-
     if (!channelInfo) {
       const error = BusinessError.required("频道信息是必需的").toErrorObj();
       return response(event, null, error, error.errorCode);
     }
 
-    // 验证用户是否存在
-    const user = await queryUserById(userId);
-    if (!user) {
-      const error = BusinessError.invalidRequest("用户不存在").toErrorObj();
-      return response(event, null, error, error.errorCode);
-    }
-
     // 创建或更新频道
-    const channel = await createOrUpdateUserChannel(userId, channelInfo);
+    const channel = await createOrUpdateUserChannel(
+      event.context.user.id,
+      channelInfo,
+    );
 
     return response(event, { data: channel }, null);
   } catch (error) {

@@ -14,8 +14,8 @@
         <div>
           <h1 class="text-3xl font-bold text-green-600 mb-1">用户体重对比</h1>
           <p class="text-gray-600 text-sm">与目标用户进行体重数据对比</p>
-          <p v-if="currentUser" class="text-sm text-gray-500 mt-1">
-            当前用户：{{ currentUser.name }} ({{ currentUser.email }})
+          <p class="text-sm text-gray-500 mt-1">
+            当前用户：{{ data.user.name }} ({{ data.user.email }})
           </p>
         </div>
       </div>
@@ -29,7 +29,9 @@
       <div class="max-w-4xl mx-auto space-y-6">
         <!-- Input Form -->
         <div class="bg-white rounded-lg shadow-lg p-4 md:p-6">
-          <h2 class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4">
+          <h2
+            class="text-lg md:text-xl font-semibold text-gray-800 mb-3 md:mb-4"
+          >
             选择目标用户
           </h2>
           <div class="flex flex-col md:flex-row gap-3 md:gap-4">
@@ -39,11 +41,7 @@
               :disabled="isLoading || isUsersLoading"
             >
               <option value="">请选择目标用户</option>
-              <option
-                v-for="user in allUsers"
-                :key="user.id"
-                :value="user.id"
-              >
+              <option v-for="user in allUsers" :key="user.id" :value="user.id">
                 {{ user.name }} ({{ user.email }})
               </option>
             </select>
@@ -54,12 +52,18 @@
             >
               <Search v-if="!isLoading" class="w-4 h-4" />
               <Loader2 v-else class="w-4 h-4 animate-spin" />
-              <span class="hidden sm:inline">{{ isLoading ? "对比中..." : "开始对比" }}</span>
+              <span class="hidden sm:inline">{{
+                isLoading ? "对比中..." : "开始对比"
+              }}</span>
               <span class="sm:hidden">{{ isLoading ? "对比中" : "对比" }}</span>
             </button>
           </div>
-          <p v-if="error" class="text-red-500 text-xs md:text-sm mt-2">{{ error }}</p>
-          <p v-if="isUsersLoading" class="text-blue-500 text-xs md:text-sm mt-2">正在加载用户列表...</p>
+          <p
+            v-if="isUsersLoading"
+            class="text-blue-500 text-xs md:text-sm mt-2"
+          >
+            正在加载用户列表...
+          </p>
         </div>
 
         <!-- Comparison Results -->
@@ -71,10 +75,10 @@
               <h3 class="text-lg font-semibold text-blue-600 mb-3">当前用户</h3>
               <div class="space-y-2">
                 <p>
-                  <span class="font-medium">姓名：</span>{{ currentUser.name }}
+                  <span class="font-medium">姓名：</span>{{ data.user.name }}
                 </p>
                 <p>
-                  <span class="font-medium">邮箱：</span>{{ currentUser.email }}
+                  <span class="font-medium">邮箱：</span>{{ data.user.email }}
                 </p>
                 <p>
                   <span class="font-medium">记录数量：</span
@@ -129,12 +133,16 @@
 
           <!-- Comparison Chart -->
           <div class="bg-white rounded-lg shadow-lg p-6">
-            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+            <div
+              class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4"
+            >
               <h3 class="text-lg font-semibold text-gray-800 mb-3 sm:mb-0">
                 体重趋势对比
               </h3>
               <div class="flex items-center gap-3">
-                <label class="text-sm font-medium text-gray-700">选择月份：</label>
+                <label class="text-sm font-medium text-gray-700"
+                  >选择月份：</label
+                >
                 <select
                   v-model="selectedMonth"
                   class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
@@ -154,10 +162,13 @@
                 v-if="filteredComparisonData"
                 :current-user-data="filteredComparisonData.currentUser.records"
                 :target-user-data="filteredComparisonData.targetUser.records"
-                :current-user-name="currentUser.name"
+                :current-user-name="data.user.name"
                 :target-user-name="targetUser.name"
               />
-              <div v-else class="flex items-center justify-center h-full text-gray-500">
+              <div
+                v-else
+                class="flex items-center justify-center h-full text-gray-500"
+              >
                 该月份暂无数据
               </div>
             </div>
@@ -213,17 +224,17 @@
 <script setup>
 import { ref, computed, onMounted } from "vue";
 import { ArrowLeft, Search, Loader2, Users } from "lucide-vue-next";
-import api from "@/lib/api";
+import api, { showGlobalError } from "@/lib/api";
 
 // Reactive data
-const currentUser = ref(null);
+const { data } = useAuth();
+
 const targetUserId = ref("");
 const allUsers = ref([]);
 const targetUser = ref(null);
 const comparisonData = ref(null);
 const isLoading = ref(false);
 const isUsersLoading = ref(false);
-const error = ref("");
 const selectedMonth = ref(new Date().toISOString().slice(0, 7)); // 当前月份 YYYY-MM
 
 // Computed properties
@@ -257,41 +268,43 @@ const weightDifference = computed(() => {
 // 获取可用的月份列表
 const availableMonths = computed(() => {
   if (!comparisonData.value) return [];
-  
+
   const months = new Set();
-  
+
   // 从当前用户记录中提取月份
-  comparisonData.value.currentUser.records.forEach(record => {
+  comparisonData.value.currentUser.records.forEach((record) => {
     const month = record.date.slice(0, 7);
     months.add(month);
   });
-  
+
   // 从目标用户记录中提取月份
-  comparisonData.value.targetUser.records.forEach(record => {
+  comparisonData.value.targetUser.records.forEach((record) => {
     const month = record.date.slice(0, 7);
     months.add(month);
   });
-  
+
   return Array.from(months).sort().reverse(); // 按时间倒序排列
 });
 
 // 过滤当前月份的数据
 const filteredComparisonData = computed(() => {
   if (!comparisonData.value) return null;
-  
+
   const filterByMonth = (records) => {
-    return records.filter(record => record.date.startsWith(selectedMonth.value));
+    return records.filter((record) =>
+      record.date.startsWith(selectedMonth.value)
+    );
   };
-  
+
   return {
     currentUser: {
       ...comparisonData.value.currentUser,
-      records: filterByMonth(comparisonData.value.currentUser.records)
+      records: filterByMonth(comparisonData.value.currentUser.records),
     },
     targetUser: {
       ...comparisonData.value.targetUser,
-      records: filterByMonth(comparisonData.value.targetUser.records)
-    }
+      records: filterByMonth(comparisonData.value.targetUser.records),
+    },
   };
 });
 
@@ -301,10 +314,9 @@ const loadAllUsers = async () => {
   try {
     const users = await api.user.queryAll();
     // 过滤掉当前用户
-    allUsers.value = users.filter(user => user.id !== currentUser.value.id);
+    allUsers.value = users.filter(user => user.id !== data.value.user.id);
   } catch (err) {
-    console.error('加载用户列表失败:', err);
-    error.value = "加载用户列表失败";
+    showGlobalError(err.message || "加载用户列表失败");
   } finally {
     isUsersLoading.value = false;
   }
@@ -312,28 +324,25 @@ const loadAllUsers = async () => {
 
 const compareUsers = async () => {
   if (!targetUserId.value) {
-    error.value = "请选择目标用户";
+    showGlobalError("请选择目标用户");
     return;
   }
 
   isLoading.value = true;
-  error.value = "";
 
   try {
-    const targetUserData = allUsers.value.find(user => user.id === targetUserId.value);
-    console.log('目标用户数据:', targetUserData);
-    
+    const targetUserData = allUsers.value.find(
+      (user) => user.id === targetUserId.value
+    );
+
     if (!targetUserData) {
-      error.value = "目标用户不存在";
+      showGlobalError("目标用户不存在");
       isLoading.value = false;
       return;
     }
 
-    const currentUserRecords = await api.weight.query(currentUser.value.id);
+    const currentUserRecords = await api.weight.query(data.value.user.id);
     const targetUserRecords = await api.weight.query(targetUserData.id);
-    
-    console.log('当前用户记录:', currentUserRecords);
-    console.log('目标用户记录:', targetUserRecords);
 
     // 计算统计数据
     const currentUserStats = calculateUserStats(currentUserRecords);
@@ -346,21 +355,21 @@ const compareUsers = async () => {
         averageWeight: currentUserStats.averageWeight,
         maxWeight: currentUserStats.maxWeight,
         minWeight: currentUserStats.minWeight,
-        records: currentUserRecords.map(record => ({
+        records: currentUserRecords.map((record) => ({
           date: record.date,
-          weight: record.weight
-        }))
+          weight: record.weight,
+        })),
       },
       targetUser: {
         recordCount: targetUserRecords.length,
         averageWeight: targetUserStats.averageWeight,
         maxWeight: targetUserStats.maxWeight,
         minWeight: targetUserStats.minWeight,
-        records: targetUserRecords.map(record => ({
+        records: targetUserRecords.map((record) => ({
           date: record.date,
-          weight: record.weight
-        }))
-      }
+          weight: record.weight,
+        })),
+      },
     };
 
     // 设置默认选中的月份为最新的月份
@@ -368,8 +377,7 @@ const compareUsers = async () => {
       selectedMonth.value = availableMonths.value[0];
     }
   } catch (err) {
-    console.error('对比失败:', err);
-    error.value = "对比失败，请重试";
+    showGlobalError(err.message || "对比失败，请重试");
     targetUser.value = null;
     comparisonData.value = null;
   } finally {
@@ -383,43 +391,43 @@ const calculateUserStats = (records) => {
     return {
       averageWeight: 0,
       maxWeight: 0,
-      minWeight: 0
+      minWeight: 0,
     };
   }
 
-  const weights = records.map(record => record.weight);
+  const weights = records.map((record) => record.weight);
   const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-  
+
   return {
     averageWeight: (totalWeight / weights.length).toFixed(1),
     maxWeight: Math.max(...weights).toFixed(1),
-    minWeight: Math.min(...weights).toFixed(1)
+    minWeight: Math.min(...weights).toFixed(1),
   };
 };
 
 // 格式化月份显示
 const formatMonth = (monthStr) => {
-  const [year, month] = monthStr.split('-');
+  const [year, month] = monthStr.split("-");
   const monthNames = [
-    '一月', '二月', '三月', '四月', '五月', '六月',
-    '七月', '八月', '九月', '十月', '十一月', '十二月'
+    "一月",
+    "二月",
+    "三月",
+    "四月",
+    "五月",
+    "六月",
+    "七月",
+    "八月",
+    "九月",
+    "十月",
+    "十一月",
+    "十二月",
   ];
   return `${year}年${monthNames[parseInt(month) - 1]}`;
 };
 
 // Lifecycle
 onMounted(async () => {
-  // 检查用户登录状态
-  const userInfoStr = localStorage.getItem("user-info");
-
-  if (userInfoStr) {
-    currentUser.value = JSON.parse(userInfoStr);
-    console.log("用户对比页面已加载");
-    // 加载所有用户列表
-    await loadAllUsers();
-  } else {
-    // 用户未登录，跳转到首页
-    navigateTo("/");
-  }
+  // 加载所有用户列表
+  await loadAllUsers();
 });
 </script>

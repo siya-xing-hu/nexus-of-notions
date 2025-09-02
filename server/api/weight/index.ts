@@ -1,4 +1,5 @@
-import { defineEventHandler, getQuery, readBody } from "h3";
+import { getQuery, readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
 import { WeightHandler } from "@/lib/handler/WeightHandler";
 import { BusinessError } from "@/lib/exception/BusinessError";
@@ -6,24 +7,34 @@ import { queryAllWeightRecords } from "@/lib/db";
 import { DbWeightRecord } from "@/lib/db/types";
 import { SystemError } from "@/lib/exception";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    case HttpMethod.GET:
-      return handleGet(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handlePost(event);
+      case HttpMethod.GET:
+        return handleGet(event);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
 
 async function handlePost(event: any): Promise<Resp<any>> {
   const body: ReqObj = await readBody(event);
   const { data } = body;
 
   try {
-    await WeightHandler.handleAddWeight(data.weight, data.date, data.userId);
+    await WeightHandler.handleAddWeight(
+      data.weight,
+      data.date,
+      event.context.user.id,
+    );
 
     return response(event, null, null);
   } catch (error) {

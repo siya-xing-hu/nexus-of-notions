@@ -1,34 +1,38 @@
-import { defineEventHandler, readBody } from "h3";
-import { HttpMethod, ReqObj, Resp, response } from "@/lib/api";
-import { WeightHandler } from "@/lib/handler/WeightHandler";
-import { BusinessError } from "@/lib/exception/BusinessError";
-import { SystemError } from "@/lib/exception";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
+import { HttpMethod, ReqObj, Resp, response } from "@/lib/api/index";
+import { DbWeightRecord } from "@/lib/db/types";
+import { BusinessError } from "@/lib/exception";
+import { WeightHandler } from "@/lib/handler";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowApiKeyAuth: true, // 只允许 API Key 认证
+    allowSessionAuth: false, // 不允许 Session/Cookie 认证
+  },
+  async (event) => {
+    // 认证已由 defineAuthenticatedEventHandler 处理
+    // 我们可以安全地从上下文中获取用户信息
+    const user = event.context.user;
 
-async function handlePost(event: any): Promise<Resp<any>> {
-  const body: ReqObj = await readBody(event);
-  const { weight, date, userId } = body.data;
-
-  try {
-    await WeightHandler.handleAddWeight(weight, date, userId);
-
-    return response(event, null, null);
-  } catch (error) {
-    if (error instanceof BusinessError) {
-      const errorObj = error.toErrorObj();
-      return response(event, null, errorObj, errorObj.errorCode);
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handleRequest(event, user.id);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
     }
-    // 处理其他类型的错误
-    const errorObj = SystemError.internalServerError().toErrorObj();
-    return response(event, null, errorObj, errorObj.errorCode);
-  }
+  },
+);
+
+async function handleRequest(
+  event: any,
+  userId: string,
+): Promise<Resp<null>> {
+  const body: ReqObj = await readBody(event);
+  const data = body.data as DbWeightRecord;
+
+  // 使用认证后的 userId，而不是从请求体中获取
+  await WeightHandler.handleAddWeight(data.weight, data.date, userId);
+
+  return response(event, null, null);
 }

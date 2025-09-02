@@ -1,17 +1,23 @@
-import { defineEventHandler, readBody } from "h3";
+import { readBody } from "h3";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
 import { BusinessError, SystemError } from "@/lib/exception";
 import { GameHandler } from "@/lib/handler";
 import { DbGame } from "@/lib/db/types";
 
-export default defineEventHandler(async (event) => {
-  if (event.method === HttpMethod.POST) {
-    return handlePost(event);
-  }
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    if (event.method === HttpMethod.POST) {
+      return handlePost(event);
+    }
 
-  const error = BusinessError.methodNotAllowed().toErrorObj();
-  return response(event, null, error, error.errorCode);
-});
+    const error = BusinessError.methodNotAllowed().toErrorObj();
+    return response(event, null, error, error.errorCode);
+  },
+);
 
 async function handlePost(
   event: any,
@@ -21,9 +27,9 @@ async function handlePost(
   const { data } = body;
 
   try {
-    const { row, col, userId } = data;
+    const { row, col } = data;
 
-    const result = await GameHandler.handleGameMove(gameId, userId, row, col);
+    const result = await GameHandler.handleGameMove(gameId, event.context.user.id, row, col);
 
     const responseData: RespObj<{ game: DbGame; isWin: boolean }> = {
       data: result,

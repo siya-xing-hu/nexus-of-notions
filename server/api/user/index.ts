@@ -1,20 +1,25 @@
-import { defineEventHandler, getQuery, readBody } from "h3";
+import { readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
 import { BusinessError } from "@/lib/exception/BusinessError";
-import { queryAllUsers, queryUserByEmail, queryUserById } from "@/lib/db";
+import { queryAllUsers, queryUserByEmail } from "@/lib/db";
 import { DbUser } from "@/lib/db/types";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    case HttpMethod.GET:
-      return handleGet(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handlePost(event);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
 
 async function handlePost(event: any): Promise<Resp<any>> {
   const body: ReqObj = await readBody(event);
@@ -44,25 +49,4 @@ async function handlePost(event: any): Promise<Resp<any>> {
   }
 
   return response(event, result, null);
-}
-
-async function handleGet(event: any): Promise<Resp<DbUser>> {
-  const query = getQuery(event);
-  const userId = query.userId as string;
-
-  if (!userId) {
-    const error = BusinessError.required("用户ID是必需的").toErrorObj();
-    return response(event, null, error, error.errorCode);
-  }
-
-  const user = await queryUserById(userId);
-  if (!user) {
-    const error = BusinessError.required("用户不存在").toErrorObj();
-    return response(event, null, error, error.errorCode);
-  }
-
-  const data: RespObj<DbUser> = {
-    data: user,
-  };
-  return response(event, data, null);
 }

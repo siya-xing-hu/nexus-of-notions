@@ -8,25 +8,46 @@
     <!-- 主聊天界面 -->
     <div v-else class="flex h-screen">
       <!-- 频道列表 (在PC端始终显示，在移动端仅当未选择频道时显示) -->
-      <div class="w-full sm:w-60 bg-white transition-all duration-300" :class="{
-        'hidden sm:block': selectedChannel,
-        block: !selectedChannel,
-      }">
-        <Channel :channels="channels" :selected-channel="selectedChannel" @channel-selected="handleChannelSelected"
-          @channel-added="handleChannelAdded" @channel-removed="handleChannelRemoved"
-          @channel-refreshed="handleChannelRefreshed" />
+      <div
+        class="w-full sm:w-60 bg-white transition-all duration-300"
+        :class="{
+          'hidden sm:block': selectedChannel,
+          block: !selectedChannel,
+        }"
+      >
+        <Channel
+          :channels="channels"
+          :selected-channel="selectedChannel"
+          @channel-selected="handleChannelSelected"
+          @channel-added="handleChannelAdded"
+          @channel-removed="handleChannelRemoved"
+          @channel-refreshed="handleChannelRefreshed"
+        />
       </div>
 
       <!-- 聊天窗口 (在PC端始终显示，在移动端仅当选择频道时显示) -->
-      <div class="flex-1 transition-all duration-300" :class="{
-        'hidden sm:block': !selectedChannel,
-        block: selectedChannel,
-      }">
-        <Chat v-if="selectedChannel" :channel="selectedChannel" :messages="currentMessages" :loading="loading"
-          @send-message="handleSendMessage" @close-chat="selectedChannel = null" @refresh-messages="refreshMessages" />
+      <div
+        class="flex-1 transition-all duration-300"
+        :class="{
+          'hidden sm:block': !selectedChannel,
+          block: selectedChannel,
+        }"
+      >
+        <Chat
+          v-if="selectedChannel"
+          :channel="selectedChannel"
+          :messages="currentMessages"
+          :loading="loading"
+          @send-message="handleSendMessage"
+          @close-chat="selectedChannel = null"
+          @refresh-messages="refreshMessages"
+        />
         <div v-else class="h-full flex items-center justify-center bg-gray-50">
           <div class="text-center p-6">
-            <Icon name="lucide:message-circle" class="mx-auto h-16 w-16 text-gray-400 mb-4" />
+            <Icon
+              name="lucide:message-circle"
+              class="mx-auto h-16 w-16 text-gray-400 mb-4"
+            />
             <h3 class="text-xl font-medium text-gray-900 mb-2">
               选择频道开始聊天
             </h3>
@@ -44,7 +65,6 @@ import { ref, watch, computed } from "vue";
 import { api, showGlobalError } from "@/lib/api";
 import { TelegramMessage } from "@/lib/telegram";
 import { DbTelegramChannel } from "@/lib/db/types";
-import { useUser } from "@/composables/useUser";
 
 // 响应式数据
 const loading = ref(false);
@@ -55,8 +75,6 @@ const messageMap = ref<Map<string, TelegramMessage[]>>(new Map());
 const channels = ref<DbTelegramChannel[]>([]);
 const selectedChannel = ref<DbTelegramChannel | null>(null);
 
-const user = useUser().user;
-
 // 当前频道的消息
 const currentMessages = computed(() => {
   if (!selectedChannel.value) return [];
@@ -66,7 +84,7 @@ const currentMessages = computed(() => {
 // 从数据库加载频道列表
 const loadChannels = async () => {
   try {
-    const userChannels = await api.telegramChannel.getUserChannels(user!.id);
+    const userChannels = await api.telegramChannel.getUserChannels();
 
     if (userChannels.length === 0) {
       // 添加默认频道 yunpanchat
@@ -107,7 +125,6 @@ const handleChannelAdded = async (username: string) => {
 
     // 保存到数据库
     const savedChannel = await api.telegramChannel.addOrUpdateChannel(
-      user!.id,
       channelInfo
     );
 
@@ -155,7 +172,6 @@ const handleChannelRefreshed = async (channel: DbTelegramChannel) => {
 
     // 更新数据库中的频道信息
     const savedChannel = await api.telegramChannel.addOrUpdateChannel(
-      user!.id,
       updatedChannelInfo
     );
 

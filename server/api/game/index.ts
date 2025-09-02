@@ -1,28 +1,37 @@
-import { defineEventHandler, getQuery, readBody } from "h3";
+import { getQuery, readBody } from "h3";
+import { defineAuthenticatedEventHandler } from "@/server/utils/auth";
 import { HttpMethod, ReqObj, Resp, RespObj, response } from "@/lib/api";
 import { BusinessError, SystemError } from "@/lib/exception";
 import { GameHandler } from "@/lib/handler";
 import { queryAvailableGames, queryUserGames } from "@/lib/db";
 import { DbGame } from "@/lib/db/types";
 
-export default defineEventHandler(async (event) => {
-  switch (event.method) {
-    case HttpMethod.POST:
-      return handlePost(event);
-    case HttpMethod.GET:
-      return handleGet(event);
-    default:
-      const error = BusinessError.methodNotAllowed().toErrorObj();
-      return response(event, null, error, error.errorCode);
-  }
-});
+export default defineAuthenticatedEventHandler(
+  {
+    allowSessionAuth: true, // 只允许 Session/Cookie 认证
+    allowApiKeyAuth: false, // 不允许 API Key 认证
+  },
+  async (event) => {
+    const user = event.context.user;
 
-async function handlePost(event: any): Promise<Resp<DbGame>> {
+    switch (event.method) {
+      case HttpMethod.POST:
+        return handlePost(event, user.id);
+      case HttpMethod.GET:
+        return handleGet(event, user.id);
+      default:
+        const error = BusinessError.methodNotAllowed().toErrorObj();
+        return response(event, null, error, error.errorCode);
+    }
+  },
+);
+
+async function handlePost(event: any, userId: string): Promise<Resp<DbGame>> {
   const body: ReqObj = await readBody(event);
   const { data } = body;
 
   try {
-    const { userId, size = 15 } = data;
+    const { size = 15 } = data;
     const game = await GameHandler.handleCreateGame(userId, size);
 
     const result: RespObj<DbGame> = {
@@ -39,10 +48,9 @@ async function handlePost(event: any): Promise<Resp<DbGame>> {
   }
 }
 
-async function handleGet(event: any): Promise<Resp<DbGame[]>> {
+async function handleGet(event: any, userId: string): Promise<Resp<DbGame[]>> {
   const query = getQuery(event);
   const status = query.status as string;
-  const userId = query.userId as string;
 
   try {
     let games: DbGame[];

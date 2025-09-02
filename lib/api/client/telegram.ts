@@ -92,15 +92,17 @@ export const telegramApi = {
           query,
         },
       },
-    }) as Promise<Array<{
-      id: number;
-      access_hash: string;
-      title: string;
-      username: string;
-      type: "CHANNEL" | "BOT" | "USER";
-      first_name?: string;
-      last_name?: string;
-    }>>,
+    }) as Promise<
+      Array<{
+        id: number;
+        access_hash: string;
+        title: string;
+        username: string;
+        type: "CHANNEL" | "BOT" | "USER";
+        first_name?: string;
+        last_name?: string;
+      }>
+    >,
 };
 
 export type TelegramApi = typeof telegramApi;
@@ -108,15 +110,15 @@ export type TelegramApi = typeof telegramApi;
 // 频道管理 API
 export const telegramChannelApi = {
   // 获取用户的频道列表
-  getUserChannels: (userId: string) =>
+  getUserChannels: () =>
     request("/api/telegram/channels", HttpMethod.GET, {
-      query: { userId },
+      query: {},
     }) as Promise<DbTelegramChannel[]>,
 
   // 添加或更新频道
-  addOrUpdateChannel: (userId: string, channelInfo: DbTelegramChannel) =>
+  addOrUpdateChannel: (channelInfo: DbTelegramChannel) =>
     request("/api/telegram/channels", HttpMethod.POST, {
-      body: { data: { userId, channelInfo } },
+      body: { data: { channelInfo } },
     }) as Promise<DbTelegramChannel>,
 
   // 删除频道

@@ -10,14 +10,14 @@
       </div>
       <div class="text-right">
         <!-- 用户信息显示 -->
-        <div v-if="userInfo" class="mb-2">
+        <div v-if="status === 'authenticated'" class="mb-2">
           <div class="text-sm text-gray-600">
-            <span class="font-medium text-blue-600">{{ userInfo.name }}</span>
+            <span class="font-medium text-blue-600">{{ data.user.name }}</span>
             <span class="mx-2">•</span>
-            <span>{{ userInfo.email }}</span>
+            <span>{{ data.user.email }}</span>
           </div>
           <button
-            @click="handleLogout"
+            @click="handleSignOut"
             class="text-xs text-gray-500 hover:text-red-600 transition-colors duration-200"
           >
             退出登录
@@ -26,7 +26,7 @@
         <!-- 未登录状态 -->
         <div v-else class="mb-2">
           <NuxtLink
-            to="/login?redirect=/"
+            to="/auth"
             class="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors duration-200"
           >
             登录
@@ -69,7 +69,7 @@
               记录体重变化，可视化趋势分析，帮助你保持健康的生活方式。
             </p>
             <button
-              @click="handleWeightTrackerClick"
+              @click="handleClick('/weight-tracker')"
               class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             >
               开始使用
@@ -93,7 +93,7 @@
               与朋友一起享受经典的五子棋对战，支持实时更新和自动重连。
             </p>
             <button
-              @click="handleGomokuClick"
+              @click="handleClick('/gomoku')"
               class="block w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
             >
               开始游戏
@@ -117,7 +117,7 @@
               使用影视搜索，可以方便进行的搜索影视等操作。
             </p>
             <button
-              @click="handleSearchClick"
+              @click="handleClick('/search')"
               class="block w-full bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
             >
               开始搜索
@@ -141,7 +141,7 @@
               提供 RSA、国密等算法的密钥生成、加密和解密功能。
             </p>
             <button
-              @click="handleCryptoClick"
+              @click="handleClick('/crypto')"
               class="block w-full bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
             >
               打开工具
@@ -167,7 +167,7 @@
               使用 Telegram 客户端，可以方便进行的聊天、搜索频道等操作。
             </p>
             <button
-              @click="handleTelegramClick"
+              @click="handleClick('/coming-soon')"
               class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
               进入客户端
@@ -207,7 +207,7 @@
             v-for="feature in additionalFeatures"
             :key="feature.id"
             class="bg-white/60 backdrop-blur-sm rounded-lg p-4 hover:bg-white/80 transition-all duration-200 cursor-pointer"
-            @click="handleFeatureClick(feature)"
+            @click="handleClick(feature.path)"
           >
             <component
               :is="feature.icon"
@@ -220,6 +220,8 @@
         </div>
       </div>
     </main>
+
+
 
     <!-- Footer -->
     <footer class="container mx-auto px-4 py-8 text-center">
@@ -248,15 +250,7 @@
       </div>
     </footer>
 
-    <!-- Toast Notification -->
-    <Transition name="toast">
-      <div
-        v-if="showToast"
-        class="fixed bottom-4 right-4 bg-blue-600 text-white px-6 py-3 rounded-lg shadow-lg"
-      >
-        {{ toastMessage }}
-      </div>
-    </Transition>
+    <GlobalErrorToast />
   </div>
 </template>
 
@@ -291,9 +285,7 @@ useHead({
 });
 
 // Reactive data
-const showToast = ref(false);
-const toastMessage = ref("");
-const userInfo = ref(null);
+const { status, data, signOut } = useAuth();
 
 // Computed properties
 const currentDate = computed(() => {
@@ -316,82 +308,25 @@ const currentDate = computed(() => {
 });
 
 const additionalFeatures = ref([
-  { id: 1, name: "日程管理", icon: Calendar },
-  { id: 2, name: "学习笔记", icon: BookOpen },
-  { id: 3, name: "目标追踪", icon: Target },
-  { id: 4, name: "灵感收集", icon: Lightbulb },
+  { id: 1, name: "日程管理", icon: Calendar, path: "/coming-soon" },
+  { id: 2, name: "学习笔记", icon: BookOpen, path: "/coming-soon" },
+  { id: 3, name: "目标追踪", icon: Target, path: "/coming-soon" },
+  { id: 4, name: "灵感收集", icon: Lightbulb, path: "/coming-soon" },
 ]);
 
-// Methods
-const handleFeatureClick = (feature) => {
-  showToastMessage(`${feature.name}功能正在开发中...`);
-};
-
-const showToastMessage = (message) => {
-  toastMessage.value = message;
-  showToast.value = true;
-
-  setTimeout(() => {
-    showToast.value = false;
-  }, 3000);
-};
-
-// 检查用户登录状态
-const checkUserLogin = () => {
-  const userInfoStr = localStorage.getItem("user-info");
-
-  if (userInfoStr) {
-    userInfo.value = JSON.parse(userInfoStr);
-  }
-};
-
 // 退出登录
-const handleLogout = () => {
-  localStorage.removeItem("user-info");
-  userInfo.value = null;
-  showToastMessage("已退出登录");
-};
-
-// 处理体重记录系统点击
-const handleWeightTrackerClick = () => {
-  handleClick("/weight-tracker");
-};
-
-// 处理五子棋游戏点击
-const handleGomokuClick = () => {
-  handleClick("/gomoku");
-};
-
-// 处理影视搜索点击
-const handleSearchClick = () => {
-  handleClick("/search");
-};
-
-// 处理 Telegram 客户端点击
-const handleTelegramClick = () => {
-  handleClick("/coming-soon");
-};
-
-// 处理加密工具箱点击
-const handleCryptoClick = () => {
-  handleClick("/crypto");
+const handleSignOut = async () => {
+  await signOut({ callbackUrl: "/" });
 };
 
 // 处理点击
 const handleClick = (path) => {
-  if (userInfo.value) {
-    // 用户已登录，跳转到指定页面
-    navigateTo(path);
-  } else {
-    // 用户未登录，跳转到登录页面，并指定登录后跳转到指定页面
-    navigateTo(`/login?redirect=${path}`);
-  }
+  navigateTo(path);
 };
 
-// Lifecycle
-onMounted(() => {
-  console.log("Nexus of Notions 页面已加载");
-  checkUserLogin();
+definePageMeta({
+  layout: false,
+  auth: false,
 });
 </script>
 

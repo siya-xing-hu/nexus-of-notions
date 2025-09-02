@@ -210,7 +210,6 @@
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { api } from "@/lib/api";
-import { useUser } from "@/composables/useUser";
 
 const router = useRouter();
 const route = useRoute();
@@ -295,7 +294,7 @@ const pendingTimeout = ref<any>(null);
 const PENDING_DURATION = 3000; // 3秒确认时间
 
 // 用户状态管理
-const { user } = useUser();
+const { data } = useAuth();
 
 // 计算属性
 const currentTurnText = computed(() => {
@@ -309,7 +308,7 @@ const currentTurnText = computed(() => {
 });
 
 const isMyTurn = computed(() => {
-  return game.value?.currentTurn === user!.id;
+  return game.value?.currentTurn === data.value!.user!.id;
 });
 
 const canMakeMove = computed(() => {
@@ -354,7 +353,7 @@ const startPolling = () => {
   }
 
   // 如果现在是自己的回合，不启动轮询
-  if (game.value?.currentTurn === user!.id) {
+  if (game.value?.currentTurn === data.value!.user!.id) {
     return;
   }
 
@@ -384,7 +383,7 @@ const pollGameState = async () => {
   }
 
   // 如果是自己的回合，不需要轮询
-  if (game.value?.currentTurn === user!.id) {
+  if (game.value?.currentTurn === data.value!.user!.id) {
     return;
   }
 
@@ -417,7 +416,7 @@ const pollGameState = async () => {
 
 // 处理游戏结束
 const handleGameEnd = (gameData: any) => {
-  if (gameData.winner === user!.id) {
+  if (gameData.winner === data.value!.user!.id) {
     winMessage.value = "恭喜！你获胜了！";
   } else if (gameData.winner) {
     const winnerName =
@@ -497,7 +496,6 @@ const handleMoveClick = async (row: number, col: number) => {
   try {
     const response = await api.game.move(
       route.params.id as string,
-      user!.id,
       row,
       col
     );
@@ -531,7 +529,7 @@ const handleMoveClick = async (row: number, col: number) => {
 // 创建新游戏
 const createNewGame = async () => {
   try {
-    const newGame = await api.game.create(user!.id, 15);
+    const newGame = await api.game.create(15);
     if (newGame) {
       router.push(`/gomoku/game/${newGame.id}`);
     }
@@ -604,7 +602,6 @@ onMounted(async () => {
 
 // 组件卸载前停止轮询
 onBeforeUnmount(() => {
-  console.log("组件卸载前停止轮询");
   stopPolling();
   clearPendingMove();
 

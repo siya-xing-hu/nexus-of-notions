@@ -3,7 +3,12 @@ import { defineNuxtConfig } from "nuxt/config";
 
 export default defineNuxtConfig({
   devtools: { enabled: true },
-  modules: ["@nuxtjs/tailwindcss", "nuxt-icon", "@pinia/nuxt"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@nuxt/icon",
+    "@pinia/nuxt",
+    "@sidebase/nuxt-auth",
+  ],
   components: {
     dirs: [
       "~/components/weight",
@@ -19,12 +24,29 @@ export default defineNuxtConfig({
     "@db": "~/lib/db",
   },
 
+  auth: {
+    globalAppMiddleware: true,
+    origin: process.env.AUTH_ORIGIN,
+  },
+
   runtimeConfig: {
     // 私有配置（仅在服务器端可用）
     postgresUrl: process.env.POSTGRES_URL,
     telegramApiId: process.env.TELEGRAM_API_ID,
     telegramApiHash: process.env.TELEGRAM_API_HASH,
-    telegramSessionDir: process.env.TELEGRAM_SESSION_DIR,
+
+    // OAuth 配置
+    auth: {
+      secret: process.env.AUTH_SECRET,
+    },
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    },
+    github: {
+      clientId: process.env.GITHUB_CLIENT_ID,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    },
   },
 
   // Vercel部署配置

@@ -3,17 +3,9 @@ import { HttpMethod } from "../index";
 import { request } from "../request";
 
 export const userApi = {
-  register: (name: string, email: string) =>
+  register: (name: string, email: string, password: string) =>
     request("/api/user/register", HttpMethod.POST, {
-      body: { data: { name, email } },
-    }) as Promise<DbUser>,
-  login: (email: string) =>
-    request("/api/user/login", HttpMethod.POST, {
-      body: { data: { email } },
-    }) as Promise<DbUser>,
-  queryById: (id: string) =>
-    request("/api/user", HttpMethod.GET, {
-      query: { userId: id },
+      body: { data: { name, email, password } },
     }) as Promise<DbUser>,
   queryByEmail: (email: string) =>
     request("/api/user", HttpMethod.POST, {

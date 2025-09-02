@@ -4,15 +4,15 @@ import { request } from "../request";
 
 export const gameApi = {
   // 创建新游戏
-  create: (userId: string, size: number = 15) =>
+  create: (size: number = 15) =>
     request("/api/game", HttpMethod.POST, {
-      body: { data: { userId, size } },
+      body: { data: { size } },
     }) as Promise<DbGame>,
 
   // 获取游戏列表
-  queryUserGames: (userId: string, status?: string) =>
+  queryUserGames: (status?: string) =>
     request("/api/game", HttpMethod.GET, {
-      query: { userId, status },
+      query: { status },
     }) as Promise<DbGame[]>,
 
   // 获取可加入的游戏列表
@@ -26,15 +26,15 @@ export const gameApi = {
     request(`/api/game/${gameId}`, HttpMethod.GET) as Promise<DbGame>,
 
   // 加入游戏
-  join: (gameId: string, userId: string) =>
+  join: (gameId: string) =>
     request(`/api/game/${gameId}`, HttpMethod.PUT, {
-      body: { data: { action: "join", userId } },
+      body: { data: { action: "join" } },
     }) as Promise<DbGame>,
 
   // 游戏移动
-  move: (gameId: string, userId: string, row: number, col: number) =>
+  move: (gameId: string, row: number, col: number) =>
     request(`/api/game/${gameId}/move`, HttpMethod.POST, {
-      body: { data: { userId, row, col } },
+      body: { data: { row, col } },
     }) as Promise<{ game: DbGame; isWin: boolean }>,
 };
 
