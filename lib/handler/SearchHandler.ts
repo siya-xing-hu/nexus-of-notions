@@ -3,14 +3,31 @@ import { Telegram, TelegramMessage } from "../telegram";
 
 export interface SearchResult {
   message: TelegramMessage | null;
-  channel: string;
+  channel_id: string;
   sentMessageId: number;
   keyword: string;
 }
 
 export class SearchHandler {
+  private static SEARCH_CHANNEL = [
+    {
+      id: "1",
+      name: "网盘资源讨论区",
+      username: "yunpanchat",
+      search_code: "/s ",
+    },
+    {
+      id: "2",
+      name: "阿里云盘 投稿&搜索",
+      username: "yunpan_bot",
+      search_code: "/s ",
+    },
+  ];
+
+  private static userId = "a479546b-bec8-42d4-8ad0-c10e8202cb4a";
+
   static async handleSearch(
-    channel: string,
+    channel_id: string,
     keyword: string,
   ): Promise<SearchResult> {
     // 验证关键字
@@ -18,13 +35,16 @@ export class SearchHandler {
       throw BusinessError.required("关键字是必需的");
     }
     // 验证频道
+    // 在 SEARCH_CHANNEL 中查找与 channel_id 匹配的频道
+    const channel = SearchHandler.SEARCH_CHANNEL.find((c) => c.id === channel_id);
     if (!channel) {
-      throw BusinessError.required("频道是必需的");
+      throw BusinessError.required("频道错误");
     }
 
-    const sentMessageId = await Telegram.getService().sendMessage(
-      channel,
-      keyword,
+    const service = await Telegram.getService(SearchHandler.userId);
+    const sentMessageId = await service.sendMessage(
+      channel.username,
+      channel.search_code + keyword,
     );
 
     let message: TelegramMessage | null = null;
@@ -32,7 +52,7 @@ export class SearchHandler {
     for (let i = 0; i < 3; i++) {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       message = await SearchHandler.getMessage(
-        channel,
+        channel.id,
         sentMessageId,
         keyword,
         5,
@@ -44,20 +64,25 @@ export class SearchHandler {
 
     return {
       message,
-      channel,
+      channel_id,
       sentMessageId,
       keyword,
     };
   }
 
   static async getMessage(
-    channel: string,
+    channel_id: string,
     sentMessageId: number,
     keyword: string,
     limit: number = 20,
   ): Promise<TelegramMessage | null> {
-    const messages = await Telegram.getService().getChannelMessages(
-      channel,
+    const channel = SearchHandler.SEARCH_CHANNEL.find((c) => c.id === channel_id);
+    if (!channel) {
+      throw BusinessError.required("频道错误");
+    }
+    const service = await Telegram.getService(SearchHandler.userId);
+    const messages = await service.getChannelMessages(
+      channel.username,
       limit,
     );
     return await SearchHandler.getReplyMessage(

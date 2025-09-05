@@ -1,8 +1,13 @@
 <template>
   <div class="container mx-auto px-4 py-6">
     <div class="flex items-center justify-center mb-6">
-      <Icon name="lucide:film" class="w-8 h-8 text-primary mr-3 text-green-900" />
-      <h1 class="text-3xl font-bold text-foreground text-green-900">影视资源搜索</h1>
+      <Icon
+        name="lucide:film"
+        class="w-8 h-8 text-primary mr-3 text-green-900"
+      />
+      <h1 class="text-3xl font-bold text-foreground text-green-900">
+        影视资源搜索
+      </h1>
     </div>
 
     <!-- Search Interface -->
@@ -13,7 +18,7 @@
       >
         <option
           v-for="category in categories"
-          :key="category.name"
+          :key="category.id"
           :value="category"
         >
           {{ category.name }}
@@ -25,7 +30,7 @@
           v-model="searchQuery"
           type="text"
           placeholder="请输入搜索关键词..."
-          class="input input-bordered w-full"
+          class="input input-bordered w-full pl-1"
           :disabled="isPolling"
           @keyup.enter="handleSearch"
         />
@@ -91,12 +96,8 @@ const sentMessageId = ref<number | null>(null);
 const pollingInterval = ref<NodeJS.Timeout | null>(null);
 const pollingTimeout = ref<NodeJS.Timeout | null>(null);
 const lastSearchedKeyword = ref("");
-
-const categories = ref([
-  { name: "网盘资源讨论区", username: "yunpanchat", search_code: "/s " },
-  { name: "阿里云盘 投稿&搜索", username: "yunpan_bot", search_code: "/s" },
-]);
-const selectedCategory = ref(categories.value[0]);
+const categories = ref<any[]>([]);
+const selectedCategory = ref<any>();
 
 const isPolling = computed(() => pollingInterval.value !== null);
 
@@ -131,7 +132,7 @@ const startPolling = (msgId: number) => {
   pollingInterval.value = setInterval(async () => {
     try {
       const data = await api.search.getResult({
-        channel: selectedCategory.value.username,
+        channel_id: selectedCategory.value.id,
         sentMessageId: msgId,
         keyword: lastSearchedKeyword.value,
       });
@@ -164,8 +165,7 @@ const handleSearch = async () => {
     return;
   }
 
-  const keywordWithPrefix =
-    selectedCategory.value.search_code + searchQuery.value.trim();
+  const keywordWithPrefix = searchQuery.value.trim();
 
   // 情况2：重试查询
   if (sentMessageId.value && lastSearchedKeyword.value === keywordWithPrefix) {
@@ -187,7 +187,7 @@ const handleSearch = async () => {
 
   try {
     const searchResult = await api.search.search({
-      channel: selectedCategory.value.username,
+      channel_id: selectedCategory.value.id,
       keyword: keywordWithPrefix,
     });
 
@@ -201,8 +201,7 @@ const handleSearch = async () => {
     } else {
       loading.value = false;
     }
-  } catch (err: any) {
-    showGlobalError(err.message || "搜索请求失败");
+  } finally {
     loading.value = false;
   }
 };
@@ -219,6 +218,19 @@ watch(
   },
   { deep: true }
 );
+
+const getCategories = async () => {
+  const channels = await api.search.search_channels();
+  categories.value = channels;
+  // 设置默认选中第一个分类
+  if (channels.length > 0 && !selectedCategory.value) {
+    selectedCategory.value = channels[0];
+  }
+};
+
+onMounted(async () => {
+  await getCategories();
+});
 </script>
 
 <style scoped>

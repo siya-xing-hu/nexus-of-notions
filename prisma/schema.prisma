@@ -24,10 +24,11 @@ model User {
   createdAt         DateTime @default(now()) @map("created_at")
   updatedAt         DateTime @updatedAt @map("updated_at")
 
-  weightRecords    WeightRecord[]
-  gamesAsPlayer1   Game[]            @relation("Player1")
-  gamesAsPlayer2   Game[]            @relation("Player2")
-  telegramChannels TelegramChannel[]
+  weightRecords     WeightRecord[]
+  gamesAsPlayer1    Game[]            @relation("Player1")
+  gamesAsPlayer2    Game[]            @relation("Player2")
+  telegramChannels  TelegramChannel[]
+  telegramSessions  TelegramSession[]
 
   @@map("users")
 }
@@ -72,12 +73,16 @@ enum GameStatus {
 
 model TelegramSession {
   id          String   @id @default(uuid())
-  phoneNumber String   @unique @map("phone_number")
+  userId      String   @map("user_id")
+  phoneNumber String   @map("phone_number")
   sessionData Json     @map("session_data") // 存储 MTProto 会话数据
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, phoneNumber]) // 确保每个用户下手机号唯一
   @@map("telegram_sessions")
 }
 

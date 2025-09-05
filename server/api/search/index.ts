@@ -28,11 +28,11 @@ async function handlePost(event: any): Promise<Resp<SearchResult>> {
     let result: any = null;
     switch (type) {
       case "search":
-        result = await SearchHandler.handleSearch(data.channel, data.keyword);
+        result = await SearchHandler.handleSearch(data.channel_id, data.keyword);
         break;
       case "getSearchResult":
         result = await SearchHandler.getMessage(
-          data.channel,
+          data.channel_id,
           data.sentMessageId,
           data.keyword,
         );

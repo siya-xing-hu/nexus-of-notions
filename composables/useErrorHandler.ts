@@ -15,9 +15,6 @@ export const useErrorHandler = () => {
 
     showError.value = true;
 
-    console.log(errorMessage.value);
-    console.log(showError.value);
-
     // 3秒后自动清除错误消息
     setTimeout(() => {
       showError.value = false;
@@ -32,8 +29,6 @@ export const useErrorHandler = () => {
 
   // 监听全局错误事件
   const handleGlobalError = (event: CustomEvent) => {
-    console.log("handleGlobalError");
-    console.log(event.detail.message);
     handleError(event.detail.message);
   };
 

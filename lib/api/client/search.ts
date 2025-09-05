@@ -3,7 +3,12 @@ import { HttpMethod } from "../index";
 import { request } from "../request";
 
 export const searchApi = {
-  search: (payload: { channel: string; keyword: string }) =>
+  search_channels: () =>
+    request("/api/search/channel", HttpMethod.GET, {
+      query: {
+      },
+    }) as Promise<any[]>,
+  search: (payload: { channel_id: string; keyword: string }) =>
     request("/api/search", HttpMethod.POST, {
       body: {
         type: "search",
@@ -12,7 +17,7 @@ export const searchApi = {
     }) as Promise<SearchResult>,
 
   getResult: (payload: {
-    channel: string;
+    channel_id: string;
     sentMessageId: number;
     keyword: string;
   }) =>

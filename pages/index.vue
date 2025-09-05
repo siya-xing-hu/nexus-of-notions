@@ -167,7 +167,7 @@
               使用 Telegram 客户端，可以方便进行的聊天、搜索频道等操作。
             </p>
             <button
-              @click="handleClick('/coming-soon')"
+              @click="handleClick('/telegram')"
               class="block w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
             >
               进入客户端

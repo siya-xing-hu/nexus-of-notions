@@ -15,6 +15,8 @@ export {
 export {
   getActiveTelegramSession,
   getTelegramSessionByPhoneNumber,
+  getActiveTelegramSessionByUserId,
+  getTelegramSessionByUserIdAndPhone,
   readTelegramSessionData,
   writeTelegramSessionData,
   deactivateTelegramSession,

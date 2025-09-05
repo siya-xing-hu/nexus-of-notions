@@ -1,5 +1,4 @@
 import { randomUUID } from "crypto";
-import { Telegram } from ".";
 import { DbTelegramChannel } from "../db/types";
 import { BusinessError } from "../exception";
 import { TelegramClient } from "./client";
@@ -24,9 +23,11 @@ export interface TelegramMessage {
 
 export class TelegramService {
   private client: TelegramClient;
+  private userId: string;
 
-  constructor(client: TelegramClient) {
+  constructor(client: TelegramClient, userId: string) {
     this.client = client;
+    this.userId = userId;
   }
 
   private async getBaseChannelInfo(channelUsername: string): Promise<DbTelegramChannel> {
@@ -92,7 +93,7 @@ export class TelegramService {
 
       return {
         id: randomUUID(),
-        user_id: Telegram.getAuth().getAuthState()?.user?.id,
+        user_id: this.userId,
         channel_id: channel.id,
         access_hash: channel.access_hash,
         title: channel.title || channel.first_name || channel.username,
@@ -215,7 +216,7 @@ export class TelegramService {
         const participant = fullChannel.full_chat.participants.participants
           .find(
             (p: any) =>
-              p.user_id === Telegram.getAuth().getAuthState()?.user?.id,
+              p.user_id === this.userId,
           );
 
         if (participant) {

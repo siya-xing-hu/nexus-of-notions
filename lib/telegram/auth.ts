@@ -1,10 +1,10 @@
 import { BusinessError } from "../exception";
 import {
   deactivateTelegramSession,
-  getActiveTelegramSession,
-  getTelegramSessionByPhoneNumber,
+  getActiveTelegramSessionByUserId,
+  getTelegramSessionByUserIdAndPhone,
   writeTelegramSessionData,
-} from "@/lib/db";
+} from "@/lib/db/service/telegram";
 import { CustomStorage, TelegramClient } from "./client";
 
 export interface AuthState {
@@ -17,32 +17,36 @@ export interface AuthState {
 
 // 数据库存储实现
 class DatabaseStorage implements CustomStorage {
+  private userId: string;
   private phoneNumber: string;
 
-  constructor(phoneNumber: string) {
+  constructor(userId: string, phoneNumber: string) {
+    this.userId = userId;
     this.phoneNumber = phoneNumber;
   }
 
   async get(key: string): Promise<any> {
-    const session = await getTelegramSessionByPhoneNumber(this.phoneNumber);
+    const session = await getTelegramSessionByUserIdAndPhone(this.userId, this.phoneNumber);
     if (!session || !session.isActive) return null;
     const sessionData = (session.sessionData as any) || {};
     return sessionData[key] ?? null;
   }
 
   async set(key: string, value: any): Promise<void> {
-    await writeTelegramSessionData(this.phoneNumber, { [key]: value });
+    await writeTelegramSessionData(this.userId, this.phoneNumber, { [key]: value });
   }
 }
 
 export class TelegramAuth {
   private client: TelegramClient;
+  private userId: string;
   private phoneNumber: string = "";
   private authState: AuthState | null = null;
   private storage: DatabaseStorage | null = null;
 
-  constructor(client: TelegramClient) {
+  constructor(client: TelegramClient, userId: string) {
     this.client = client;
+    this.userId = userId;
   }
 
   // 尝试从现有会话恢复认证状态
@@ -50,8 +54,8 @@ export class TelegramAuth {
     { isAuthenticated: boolean; phoneNumber?: string }
   > {
     try {
-      // 查找活跃的会话
-      const activeSession = await getActiveTelegramSession();
+      // 查找该用户的活跃会话
+      const activeSession = await getActiveTelegramSessionByUserId(this.userId);
 
       if (!activeSession) {
         return { isAuthenticated: false };
@@ -89,7 +93,7 @@ export class TelegramAuth {
   // 初始化 MTProto 实例
   private async initializeMTProto(phoneNumber: string) {
     this.phoneNumber = phoneNumber;
-    this.storage = new DatabaseStorage(phoneNumber);
+    this.storage = new DatabaseStorage(this.userId, phoneNumber);
     await this.client.initialize(this.storage);
   }
 
@@ -270,8 +274,8 @@ export class TelegramAuth {
   // 从数据库清理会话
   private async cleanSessionFromDatabase(phoneNumber: string): Promise<void> {
     try {
-      await deactivateTelegramSession(phoneNumber);
-      console.log(`数据库中的会话已清理: ${phoneNumber}`);
+      await deactivateTelegramSession(this.userId, phoneNumber);
+      console.log(`数据库中的会话已清理: ${this.userId} - ${phoneNumber}`);
     } catch (error) {
       console.error("清理数据库会话失败:", error);
     }

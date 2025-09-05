@@ -30,35 +30,36 @@ async function handlePost(event: any): Promise<Resp<any>> {
     let result: any = null;
     switch (type) {
       case "startAuth":
-        result = await handleStartAuth(data.phoneNumber);
+        result = await handleStartAuth(event, data.phoneNumber);
         break;
       case "submitCode":
-        result = await handleSubmitCode(data.phoneCode);
+        result = await handleSubmitCode(event, data.phoneCode);
         break;
       case "submitTwoFactor":
-        result = await handleSubmitTwoFactor(data.password);
+        result = await handleSubmitTwoFactor(event, data.password);
         break;
       case "checkAuth":
-        result = await handleCheckAuth();
+        result = await handleCheckAuth(event);
         break;
       case "logout":
-        await handleLogout();
+        await handleLogout(event);
         break;
       case "getMessages":
         result = await handleGetMessages(
+          event,
           data.channelUsername,
           data.limit,
           data.offsetId,
         );
         break;
       case "sendMessage":
-        await handleSendMessage(data.channelUsername, data.message);
+        await handleSendMessage(event, data.channelUsername, data.message);
         break;
       case "channelInfo":
-        result = await handleGetChannelInfo(data.channelUsername);
+        result = await handleGetChannelInfo(event, data.channelUsername);
         break;
       case "searchUsersAndChannels":
-        result = await handleSearchUsersAndChannels(data.query);
+        result = await handleSearchUsersAndChannels(event, data.query);
         break;
       default:
         const error = BusinessError.required("无效的操作类型").toErrorObj();
@@ -77,6 +78,7 @@ async function handlePost(event: any): Promise<Resp<any>> {
 
 // 认证相关处理函数
 async function handleStartAuth(
+  event: any,
   phoneNumber: string,
 ): Promise<{ phoneCodeHash: string }> {
   // 参数验证
@@ -84,10 +86,12 @@ async function handleStartAuth(
     throw BusinessError.required("手机号是必需的");
   }
 
-  return await Telegram.getAuth().startAuth(phoneNumber);
+  const userId = event.context.user.id;
+  return await Telegram.getAuth(userId).startAuth(phoneNumber);
 }
 
 async function handleSubmitCode(
+  event: any,
   phoneCode: string,
 ): Promise<
   { success: boolean; needsTwoFactor?: boolean; authRestart?: boolean }
@@ -97,10 +101,12 @@ async function handleSubmitCode(
     throw BusinessError.required("验证码是必需的");
   }
 
-  return await Telegram.getAuth().submitCode(phoneCode);
+  const userId = event.context.user.id;
+  return await Telegram.getAuth(userId).submitCode(phoneCode);
 }
 
 async function handleSubmitTwoFactor(
+  event: any,
   password: string,
 ): Promise<{ success: boolean }> {
   // 参数验证
@@ -108,26 +114,30 @@ async function handleSubmitTwoFactor(
     throw BusinessError.required("两步验证密码是必需的");
   }
 
-  return await Telegram.getAuth().submitTwoFactorPassword(password);
+  const userId = event.context.user.id;
+  return await Telegram.getAuth(userId).submitTwoFactorPassword(password);
 }
 
-async function handleCheckAuth(): Promise<
+async function handleCheckAuth(event: any): Promise<
   { isAuthenticated: boolean; phoneNumber?: string }
 > {
-  let result = await Telegram.getAuth().checkAuthStatus();
+  const userId = event.context.user.id;
+  let result = await Telegram.getAuth(userId).checkAuthStatus();
 
   if (!result.isAuthenticated) {
-    result = await Telegram.getAuth().tryRestoreSession();
+    result = await Telegram.getAuth(userId).tryRestoreSession();
   }
 
   return result;
 }
 
-async function handleLogout(): Promise<void> {
-  await Telegram.getAuth().logout();
+async function handleLogout(event: any): Promise<void> {
+  const userId = event.context.user.id;
+  await Telegram.getAuth(userId).logout();
 }
 
 async function handleGetChannelInfo(
+  event: any,
   channelUsername: string,
 ): Promise<DbTelegramChannel> {
   // 参数验证
@@ -135,10 +145,13 @@ async function handleGetChannelInfo(
     throw BusinessError.required("频道用户名是必需的");
   }
 
-  return await Telegram.getService().getChannelInfo(channelUsername);
+  const userId = event.context.user.id;
+  const service = await Telegram.getService(userId);
+  return await service.getChannelInfo(channelUsername);
 }
 
 async function handleSendMessage(
+  event: any,
   channelUsername: string,
   message: string,
 ): Promise<void> {
@@ -151,10 +164,13 @@ async function handleSendMessage(
     throw BusinessError.required("消息内容是必需的");
   }
 
-  await Telegram.getService().sendMessage(channelUsername, message);
+  const userId = event.context.user.id;
+  const service = await Telegram.getService(userId);
+  await service.sendMessage(channelUsername, message);
 }
 
 async function handleGetMessages(
+  event: any,
   channelUsername: string,
   limit: number,
   offsetId: number,
@@ -164,7 +180,9 @@ async function handleGetMessages(
     throw BusinessError.required("频道用户名是必需的");
   }
 
-  return await Telegram.getService().getChannelMessages(
+  const userId = event.context.user.id;
+  const service = await Telegram.getService(userId);
+  return await service.getChannelMessages(
     channelUsername,
     limit,
     offsetId,
@@ -172,6 +190,7 @@ async function handleGetMessages(
 }
 
 async function handleSearchUsersAndChannels(
+  event: any,
   query: string,
 ): Promise<
   Array<{
@@ -189,5 +208,7 @@ async function handleSearchUsersAndChannels(
     throw BusinessError.required("搜索查询是必需的");
   }
 
-  return await Telegram.getService().searchUsersAndChannels(query);
+  const userId = event.context.user.id;
+  const service = await Telegram.getService(userId);
+  return await service.searchUsersAndChannels(query);
 }
