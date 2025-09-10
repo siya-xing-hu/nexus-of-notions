@@ -84,9 +84,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { api, showGlobalError } from "@/lib/api";
 import { SearchResult } from "@/lib/handler/SearchHandler";
+
+// 缓存键名
+const CACHE_KEY = "non-search-cache";
 
 const searchQuery = ref("");
 const result = ref<SearchResult | null>(null);
@@ -112,6 +115,17 @@ const loadingText = computed(() => {
   if (isPolling.value) return "已发送搜索指令，正在等待机器人回复...";
   return "正在搜索...";
 });
+
+// 缓存相关函数
+const saveSearchCache = (searchResult: SearchResult) => {
+  const cacheData = {
+    searchQuery: searchQuery.value,
+    selectedCategory: selectedCategory.value,
+    lastSearchedKeyword: lastSearchedKeyword.value,
+    result: searchResult,
+  };
+  localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+};
 
 // 清理轮询
 const stopPolling = () => {
@@ -141,6 +155,8 @@ const startPolling = (msgId: number) => {
         result.value = data;
         stopPolling();
         loading.value = false;
+        // 保存搜索缓存
+        saveSearchCache(data);
       }
     } catch (err: any) {
       showGlobalError(err.message || "获取结果失败");
@@ -195,6 +211,8 @@ const handleSearch = async () => {
       // 立即返回结果
       result.value = searchResult;
       loading.value = false;
+      // 保存搜索缓存
+      saveSearchCache(searchResult);
     } else if (searchResult && searchResult.sentMessageId) {
       // 需要轮询
       startPolling(searchResult.sentMessageId);
@@ -219,17 +237,44 @@ watch(
   { deep: true }
 );
 
-const getCategories = async () => {
-  const channels = await api.search.search_channels();
-  categories.value = channels;
-  // 设置默认选中第一个分类
-  if (channels.length > 0 && !selectedCategory.value) {
-    selectedCategory.value = channels[0];
+const fetchCategories = async () => {
+  categories.value = await api.search.search_channels();
+  if (categories.value.length > 0) {
+    selectedCategory.value = categories.value[0];
+  }
+};
+
+const loadCachedData = async () => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (!cached) {
+    return;
+  }
+  const cachedData = JSON.parse(cached);
+
+  searchQuery.value = cachedData.searchQuery || "";
+  lastSearchedKeyword.value = cachedData.lastSearchedKeyword || "";
+
+  // 等待分类加载完成后再设置选中的分类
+  if (cachedData.selectedCategory && categories.value.length > 0) {
+    // 查找匹配的分类
+    const matchedCategory = categories.value.find(
+      (channel) => channel.id === cachedData.selectedCategory.id
+    );
+    if (matchedCategory) {
+      selectedCategory.value = matchedCategory;
+    }
+  }
+
+  // 加载缓存的搜索结果
+  if (cachedData.result) {
+    result.value = cachedData.result;
+    searched.value = true;
   }
 };
 
 onMounted(async () => {
-  await getCategories();
+  await fetchCategories();
+  await loadCachedData();
 });
 </script>
 

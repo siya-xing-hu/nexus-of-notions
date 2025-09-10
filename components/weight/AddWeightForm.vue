@@ -14,7 +14,7 @@
           id="weight"
           v-model="weight"
           type="number"
-          step="0.1"
+          step="0.05"
           min="30"
           max="200"
           required
