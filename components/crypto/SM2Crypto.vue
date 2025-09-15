@@ -151,8 +151,8 @@
               v-model="cipherMode"
               class="mt-1 block border w-full py-2 text-xs border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-xs rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
             >
-              <option value="1">C1C2C3</option>
-              <option value="0">C1C3C2</option>
+              <option value="1">C1C3C2</option>
+              <option value="0">C1C2C3</option>
             </select>
           </div>
           <Icon
@@ -244,7 +244,7 @@ const inputText = ref("");
 const resultText = ref("");
 const isProcessing = ref(false);
 const showToast = ref(false);
-const cipherMode = ref("1"); // '1' for C1C2C3, '0' for C1C3C2
+const cipherMode = ref("1"); // '1' for C1C3C2, '0' for C1C2C3
 let debounceTimer: NodeJS.Timeout | null = null;
 
 // Methods
@@ -288,13 +288,11 @@ const debounceProcess = (func: () => void) => {
 };
 
 const performEncrypt = () => {
-  isProcessing.value = true;
-  resultText.value = "";
-  if (!publicKey.value || !inputText.value) {
-    showGlobalError("公钥和待加密文本不能为空。");
-    isProcessing.value = false;
+  if (!publicKey.value) {
+    showGlobalError("请先生成公钥。");
     return;
   }
+  isProcessing.value = true;
   try {
     resultText.value = sm2.doEncrypt(
       inputText.value,
@@ -443,8 +441,4 @@ const convertPublicKey = (type: string) => {
 };
 </script>
 
-<style scoped>
-.input-field {
-  @apply mt-1 block w-full px-3 py-2 text-sm border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200;
-}
-</style>
+<style scoped></style>
