@@ -149,6 +149,32 @@
           </div>
         </div>
 
+        <!-- Twitter Video Downloader Card -->
+        <div
+          class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+        >
+          <div class="p-6 text-center">
+            <div
+              class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4"
+            >
+              <TwitterXIcon class="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">
+              Twitter 视频下载器
+            </h3>
+            <p class="text-blue-600 font-medium mb-4">下载 Twitter/X 视频</p>
+            <p class="text-gray-600 mb-6 leading-relaxed">
+              从 Twitter/X 链接下载视频，支持多种视频格式。
+            </p>
+            <button
+              @click="handleClick('/twitter')"
+              class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              开始下载
+            </button>
+          </div>
+        </div>
+
         <!-- Telegram Chat Card -->
         <div
           class="bg-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
@@ -266,6 +292,7 @@ import {
   Search as SearchIcon,
   MessageCircle as MessageCircleIcon,
   KeyRound as KeyRoundIcon,
+  Twitter as TwitterXIcon,
   Calendar,
   BookOpen,
   Target,
