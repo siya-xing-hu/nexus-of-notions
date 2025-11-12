@@ -27,6 +27,12 @@
         <div v-if="currentTab === 'SM2'">
           <SM2Crypto />
         </div>
+        <div v-if="currentTab === 'SM3'">
+          <SM3Crypto />
+        </div>
+        <div v-if="currentTab === 'SM4'">
+          <SM4Crypto />
+        </div>
         <div v-if="currentTab === 'RSA'">
           <RSACrypto />
         </div>
@@ -37,8 +43,17 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import SM2Crypto from "@/components/crypto/SM2Crypto.vue";
+import SM3Crypto from "@/components/crypto/SM3Crypto.vue";
+import SM4Crypto from "@/components/crypto/SM4Crypto.vue";
+import RSACrypto from "@/components/crypto/RSACrypto.vue";
 
-const tabs = [{ name: "SM2" }, { name: "RSA" }];
+const tabs = [
+  { name: "SM2" },
+  { name: "SM3" },
+  { name: "SM4" },
+  { name: "RSA" },
+];
 
 const currentTab = ref("SM2");
 

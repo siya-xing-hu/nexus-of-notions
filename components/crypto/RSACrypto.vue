@@ -6,6 +6,14 @@
         RSA 密钥对
       </h2>
       <div class="flex items-center space-x-4 mb-6">
+        <button
+          @click="generateKeys"
+          :disabled="isGenerating"
+          class="self-end inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
+        >
+          <span v-if="isGenerating">生成中...</span>
+          <span v-else>生成密钥</span>
+        </button>
         <div>
           <label
             for="rsa-key-size"
@@ -22,14 +30,6 @@
             <option :value="4096">4096位</option>
           </select>
         </div>
-        <button
-          @click="generateKeys"
-          :disabled="isGenerating"
-          class="self-end inline-flex items-center px-6 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
-        >
-          <span v-if="isGenerating">生成中...</span>
-          <span v-else>生成密钥</span>
-        </button>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
@@ -257,8 +257,4 @@ const copyToClipboard = (text: string) => {
 };
 </script>
 
-<style scoped>
-.input-field {
-  @apply mt-1 block w-full px-3 py-2 text-sm border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-200;
-}
-</style>
+<style scoped></style>
