@@ -244,6 +244,7 @@ const downloadVideo = async (
 const getQualityLabel = (resolution: string | null | undefined): string => {
   if (!resolution) return "标准";
   const height = parseInt(resolution.split("x")[1], 10);
+  if (height >= 1080) return "超清";
   if (height >= 720) return "高清";
   if (height >= 480) return "标清";
   return "流畅";
@@ -252,6 +253,8 @@ const getQualityLabel = (resolution: string | null | undefined): string => {
 const getQualityClass = (resolution: string | null | undefined): string => {
   if (!resolution) return "bg-gray-200 text-gray-800";
   const height = parseInt(resolution.split("x")[1], 10);
+  if (height >= 1080)
+    return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
   if (height >= 720)
     return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
   if (height >= 480)
